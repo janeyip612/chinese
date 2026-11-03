@@ -1,0 +1,417 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>乐学坊句子练习</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@500;700&display=swap">
+<style>
+/* Layout: one practice desk — a sentence prompt on top, a tray to build in, word tiles underneath; sets chosen from the 主题地图 grid */
+:root{
+  --bg:#eef2ee; --surface:#ffffff; --ink:#1b2a27; --muted:#5b6b66; --line:#d3dcd6;
+  --accent:#2f7a63; --accent-ink:#ffffff; --accent-soft:#dcece4;
+  --tile:#fffaf0; --tile-line:#e4d7b5; --tile-shadow:#d9c99f;
+  --ok:#22703c; --ok-soft:#ddf0e2; --bad:#b23a2c; --bad-soft:#f8e2de; --warn:#8a5a00; --warn-soft:#f6eacb;
+  --f-ui:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  --f-han:"Kaiti SC","STKaiti","KaiTi","Noto Serif SC","Songti SC",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121a18; --surface:#1a2522; --ink:#e5ece8; --muted:#9db0aa; --line:#2d3b37;
+  --accent:#6cc4a2; --accent-ink:#0e1a16; --accent-soft:#1d3a30;
+  --tile:#26302b; --tile-line:#3d4a43; --tile-shadow:#0d1412;
+  --ok:#6bcb86; --ok-soft:#1c3525; --bad:#f08a80; --bad-soft:#3a1f1c; --warn:#e3b45a; --warn-soft:#3a2f17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121a18; --surface:#1a2522; --ink:#e5ece8; --muted:#9db0aa; --line:#2d3b37;
+  --accent:#6cc4a2; --accent-ink:#0e1a16; --accent-soft:#1d3a30;
+  --tile:#26302b; --tile-line:#3d4a43; --tile-shadow:#0d1412;
+  --ok:#6bcb86; --ok-soft:#1c3525; --bad:#f08a80; --bad-soft:#3a1f1c; --warn:#e3b45a; --warn-soft:#3a2f17; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px;display:grid;gap:18px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px}
+h1{font-family:var(--f-han);font-size:clamp(26px,5vw,34px);margin:0;letter-spacing:.04em;text-wrap:balance;line-height:1.2}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:5px 12px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.name{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted)}
+.name input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;width:150px;color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:14px;min-width:0}
+.panel h2{margin:0;font-size:17px}
+.note{font-size:13px;color:var(--muted)}
+/* set picker */
+.sets{width:100%;border-collapse:separate;border-spacing:8px}
+.sets th{font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:0 4px}
+.sets td.tn{font-weight:700;white-space:nowrap;padding-right:4px;vertical-align:middle}
+.setbtn{width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 12px;display:grid;gap:3px;min-height:76px}
+.setbtn:hover{border-color:var(--accent)}
+.setbtn b{font-size:13px;color:var(--accent)}
+.setbtn span{font-size:13px;color:var(--ink)}
+.setbtn.l1{opacity:.7;cursor:default;background:transparent;border-style:dashed}
+.setbtn .done{font-size:12px;color:var(--ok)}
+.scroll{overflow-x:auto}
+/* practice */
+.qhead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.qnum{font-weight:700;font-variant-numeric:tabular-nums}
+.pill{font-size:12.5px;background:var(--accent-soft);padding:4px 10px;border-radius:999px}
+.prompt{font-size:21px;font-weight:500;margin:0;text-wrap:balance}
+.label{font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.tray{min-height:92px;border:2px dashed var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.tray.ok{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.tray.bad{border-style:solid;border-color:var(--bad);background:var(--bad-soft)}
+.tray .ph{color:var(--muted);font-size:14px;padding-left:4px}
+.tray .end{font-family:var(--f-han);font-size:28px;color:var(--muted);align-self:flex-end;padding-bottom:4px}
+.bank{display:flex;flex-wrap:wrap;gap:8px;min-height:66px}
+.tile{border:1px solid var(--tile-line);background:var(--tile);border-radius:10px;padding:6px 13px 7px;display:flex;flex-direction:column;align-items:center;min-width:56px;box-shadow:0 3px 0 var(--tile-shadow)}
+.tile:active{transform:translateY(2px);box-shadow:0 1px 0 var(--tile-shadow)}
+.tile .h{font-family:var(--f-han);font-size:27px;line-height:1.2}
+.tile .p{font-size:13px;color:var(--accent);font-weight:500;min-height:1.2em}
+body.nopy .tile .p,body.nopy .ans .p{display:none}
+.tile.used{visibility:hidden}
+.fb{border-radius:12px;padding:12px 14px;font-size:15px}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.show{background:var(--warn-soft);color:var(--warn)}
+.ans{display:block;color:var(--ink);font-family:var(--f-han);font-size:22px;margin-top:2px}
+.ans .p{display:block;font-family:var(--f-ui);font-size:14px;color:var(--muted)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between}
+.btnrow>div{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:10px;font-size:15px;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.dots{display:flex;flex-wrap:wrap;gap:6px}
+.dot{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:12.5px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.dot.first{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.dot.retry{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.dot.shown{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.dot.cur{outline:2px solid var(--ink);outline-offset:1px}
+/* result */
+.score{display:flex;flex-wrap:wrap;gap:12px 28px}
+.score div{display:grid}
+.score b{font-size:36px;line-height:1.1;font-variant-numeric:tabular-nums}
+.score span{font-size:13px;color:var(--muted)}
+.rlist{border-collapse:collapse;width:100%;font-size:14px}
+.rlist td{border-bottom:1px solid var(--line);padding:8px 6px;vertical-align:top}
+.rlist td.hz{font-family:var(--f-han);font-size:19px}
+.rlist .mine{display:block;font-family:var(--f-han);font-size:16px;color:var(--bad)}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.first{background:var(--ok-soft);color:var(--ok)}
+.tag.retry{background:var(--accent-soft);color:var(--accent)}
+.tag.shown{background:var(--warn-soft);color:var(--warn)}
+.msg{font-size:14px;color:var(--accent);min-height:1.3em}
+.msg.err{color:var(--bad)}
+@media (max-width:560px){.prompt{font-size:18px}.tile .h{font-size:24px}.sets{border-spacing:5px}}
+@media (prefers-reduced-motion:no-preference){.tile{transition:transform .08s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div><div class="eyebrow">乐学坊 · 主题地图 Level 2–3</div><h1>句子练习</h1></div>
+    <div class="controls">
+      <label class="name" for="who">我的名字<input id="who" type="text" placeholder="Name" autocomplete="off"></label>
+      <div class="seg" role="group" aria-label="提示语言"><button data-l="en" aria-pressed="true">English</button><button data-l="vi" aria-pressed="false">Tiếng Việt</button></div>
+      <div class="seg" role="group" aria-label="拼音"><button id="pyOn" aria-pressed="true">拼音 开</button><button id="pyOff" aria-pressed="false">关</button></div>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// tiles: [hanzi, pinyin]; alt: other correct orders (hanzi arrays)
+const SETS=[
+ {t:1,l:2,zh:"个人与社交",cd:["能问答姓名、年龄和国籍","I can ask and answer about name, age and nationality.","Em hỏi và trả lời được về tên, tuổi và quốc tịch."],q:[
+  {t:[["你","nǐ"],["叫","jiào"],["什么","shénme"],["名字","míngzi"]],e:"？",en:"What's your name?",vi:"Bạn tên là gì?"},
+  {t:[["我","wǒ"],["叫","jiào"],["小明","Xiǎo Míng"]],e:"。",en:"My name is Xiao Ming.",vi:"Mình tên là Xiao Ming."},
+  {t:[["他","tā"],["叫","jiào"],["什么","shénme"],["名字","míngzi"]],e:"？",en:"What's his name?",vi:"Anh ấy tên là gì?"},
+  {t:[["你","nǐ"],["几","jǐ"],["岁","suì"]],e:"？",en:"How old are you?",vi:"Bạn mấy tuổi?"},
+  {t:[["我","wǒ"],["九","jiǔ"],["岁","suì"]],e:"。",en:"I am nine years old.",vi:"Mình chín tuổi."},
+  {t:[["她","tā"],["十","shí"],["岁","suì"]],e:"。",en:"She is ten years old.",vi:"Cô ấy mười tuổi."},
+  {t:[["你","nǐ"],["是","shì"],["哪","nǎ"],["国","guó"],["人","rén"]],e:"？",en:"Which country are you from?",vi:"Bạn là người nước nào?"},
+  {t:[["我","wǒ"],["是","shì"],["越南","Yuènán"],["人","rén"]],e:"。",en:"I am Vietnamese.",vi:"Mình là người Việt Nam."},
+  {t:[["他","tā"],["是","shì"],["中国","Zhōngguó"],["人","rén"]],e:"。",en:"He is Chinese.",vi:"Anh ấy là người Trung Quốc."},
+  {t:[["我","wǒ"],["是","shì"],["越南","Yuènán"],["人","rén"],["，",""],["你","nǐ"],["呢","ne"]],e:"？",en:"I'm Vietnamese. And you?",vi:"Mình là người Việt Nam, còn bạn?"},
+  {t:[["他们","tāmen"],["是","shì"],["中国","Zhōngguó"],["人","rén"],["吗","ma"]],e:"？",en:"Are they Chinese?",vi:"Họ là người Trung Quốc à?"},
+  {t:[["你","nǐ"],["是","shì"],["哪里","nǎlǐ"],["人","rén"]],e:"？",en:"Where are you from?",vi:"Bạn là người ở đâu?"}]},
+ {t:1,l:3,zh:"个人与社交",cd:["能用 3–5 句话介绍自己或朋友","I can introduce myself or a friend in 3–5 sentences.","Em giới thiệu được bản thân hoặc bạn bè bằng 3–5 câu."],q:[
+  {t:[["这","zhè"],["是","shì"],["我的","wǒ de"],["朋友","péngyou"]],e:"。",en:"This is my friend.",vi:"Đây là bạn của mình."},
+  {t:[["她","tā"],["叫","jiào"],["安娜","Ānnà"]],e:"。",en:"Her name is Anna.",vi:"Cô ấy tên là Anna."},
+  {t:[["我","wǒ"],["喜欢","xǐhuan"],["中国","Zhōngguó"]],e:"。",en:"I like China.",vi:"Mình thích Trung Quốc."},
+  {t:[["我","wǒ"],["也","yě"],["喜欢","xǐhuan"],["越南","Yuènán"]],e:"。",en:"I also like Vietnam.",vi:"Mình cũng thích Việt Nam."},
+  {t:[["我","wǒ"],["很","hěn"],["高兴","gāoxìng"]],e:"。",en:"I am very happy.",vi:"Mình rất vui."},
+  {t:[["很","hěn"],["高兴","gāoxìng"],["认识","rènshi"],["你","nǐ"]],e:"。",en:"Nice to meet you.",vi:"Rất vui được làm quen với bạn."},
+  {t:[["我的","wǒ de"],["朋友","péngyou"],["也","yě"],["是","shì"],["越南","Yuènán"],["人","rén"]],e:"。",en:"My friend is Vietnamese too.",vi:"Bạn của mình cũng là người Việt Nam."},
+  {t:[["我","wǒ"],["认识","rènshi"],["他的","tā de"],["朋友","péngyou"]],e:"。",en:"I know his friend.",vi:"Mình quen bạn của anh ấy."},
+  {t:[["我们","wǒmen"],["都","dōu"],["很","hěn"],["高兴","gāoxìng"]],e:"。",en:"We are all very happy.",vi:"Chúng mình đều rất vui."},
+  {t:[["我","wǒ"],["觉得","juéde"],["她","tā"],["非常","fēicháng"],["好","hǎo"]],e:"。",en:"I think she is really nice.",vi:"Mình thấy cô ấy rất tốt."},
+  {t:[["我","wǒ"],["真","zhēn"],["喜欢","xǐhuan"],["你的","nǐ de"],["名字","míngzi"]],e:"。",en:"I really like your name.",vi:"Mình thật sự thích tên của bạn."}]},
+ {t:2,l:2,zh:"家庭与住房",cd:["能交流家里有几口人、家人在哪个房间","I can talk about how many people are in my family and where they are.","Em nói được nhà có mấy người và mọi người đang ở phòng nào."],q:[
+  {t:[["你","nǐ"],["家","jiā"],["有","yǒu"],["几","jǐ"],["口","kǒu"],["人","rén"]],e:"？",en:"How many people are in your family?",vi:"Nhà bạn có mấy người?"},
+  {t:[["我","wǒ"],["家","jiā"],["有","yǒu"],["四","sì"],["口","kǒu"],["人","rén"]],e:"。",en:"There are four people in my family.",vi:"Nhà mình có bốn người."},
+  {t:[["妈妈","māma"],["在","zài"],["哪儿","nǎr"]],e:"？",en:"Where is Mum?",vi:"Mẹ ở đâu?"},
+  {t:[["妈妈","māma"],["在","zài"],["厨房","chúfáng"]],e:"。",en:"Mum is in the kitchen.",vi:"Mẹ ở trong bếp."},
+  {t:[["爸爸","bàba"],["在","zài"],["客厅","kètīng"]],e:"。",en:"Dad is in the living room.",vi:"Bố ở phòng khách."},
+  {t:[["你","nǐ"],["有","yǒu"],["哥哥","gēge"],["吗","ma"]],e:"？",en:"Do you have an older brother?",vi:"Bạn có anh trai không?"},
+  {t:[["我","wǒ"],["没有","méiyǒu"],["妹妹","mèimei"]],e:"。",en:"I don't have a younger sister.",vi:"Mình không có em gái."},
+  {t:[["谁","shéi"],["在","zài"],["卧室","wòshì"]],e:"？",en:"Who is in the bedroom?",vi:"Ai ở trong phòng ngủ?"},
+  {t:[["姐姐","jiějie"],["在","zài"],["她的","tā de"],["房间","fángjiān"]],e:"。",en:"My older sister is in her room.",vi:"Chị gái ở trong phòng của chị ấy."},
+  {t:[["我","wǒ"],["有","yǒu"],["一个","yí ge"],["弟弟","dìdi"]],e:"。",en:"I have a younger brother.",vi:"Mình có một em trai."},
+  {t:[["你","nǐ"],["家","jiā"],["有","yǒu"],["狗","gǒu"],["吗","ma"]],e:"？",en:"Does your family have a dog?",vi:"Nhà bạn có chó không?"},
+  {t:[["我","wǒ"],["住","zhù"],["在","zài"],["这里","zhèlǐ"]],e:"。",en:"I live here.",vi:"Mình sống ở đây."},
+  {t:[["这些","zhèxiē"],["是","shì"],["我的","wǒ de"],["东西","dōngxi"]],e:"。",en:"These are my things.",vi:"Đây là đồ của mình."},
+  {t:[["哪个","nǎge"],["是","shì"],["你的","nǐ de"],["房间","fángjiān"]],e:"？",en:"Which one is your room?",vi:"Phòng nào là phòng của bạn?"}]},
+ {t:2,l:3,zh:"家庭与住房",cd:["能简单描述自己的家或家人的样子","I can describe my home or what my family members look like.","Em tả đơn giản được ngôi nhà hoặc ngoại hình người thân."],q:[
+  {t:[["我的","wǒ de"],["家","jiā"],["很","hěn"],["大","dà"]],e:"。",en:"My home is very big.",vi:"Nhà mình rất to."},
+  {t:[["我的","wǒ de"],["家","jiā"],["有","yǒu"],["三个","sān ge"],["房间","fángjiān"]],e:"。",en:"My home has three rooms.",vi:"Nhà mình có ba phòng."},
+  {t:[["我","wǒ"],["妈妈","māma"],["很","hěn"],["高","gāo"]],e:"。",en:"My mum is very tall.",vi:"Mẹ mình rất cao."},
+  {t:[["姐姐的","jiějie de"],["头发","tóufa"],["很","hěn"],["长","cháng"]],e:"。",en:"My older sister's hair is very long.",vi:"Tóc của chị gái rất dài."},
+  {t:[["我的","wǒ de"],["弟弟","dìdi"],["很","hěn"],["矮","ǎi"]],e:"。",en:"My younger brother is very short.",vi:"Em trai mình rất thấp."},
+  {t:[["我的","wǒ de"],["房间","fángjiān"],["很","hěn"],["小","xiǎo"]],e:"。",en:"My room is very small.",vi:"Phòng của mình rất nhỏ."},
+  {t:[["我","wǒ"],["和","hé"],["哥哥","gēge"],["在","zài"],["客厅","kètīng"]],e:"。",en:"My older brother and I are in the living room.",vi:"Mình và anh trai ở phòng khách.",alt:[["哥哥","和","我","在","客厅"]]},
+  {t:[["妈妈","māma"],["很","hěn"],["漂亮","piàoliang"]],e:"。",en:"Mum is very pretty.",vi:"Mẹ rất đẹp."},
+  {t:[["爸爸","bàba"],["和","hé"],["妈妈","māma"],["在","zài"],["厨房","chúfáng"]],e:"。",en:"Dad and Mum are in the kitchen.",vi:"Bố và mẹ ở trong bếp.",alt:[["妈妈","和","爸爸","在","厨房"]]},
+  {t:[["我家的","wǒ jiā de"],["猫","māo"],["非常","fēicháng"],["漂亮","piàoliang"]],e:"。",en:"My family's cat is very pretty.",vi:"Con mèo nhà mình rất đẹp."},
+  {t:[["我","wǒ"],["还","hái"],["有","yǒu"],["一个","yí ge"],["妹妹","mèimei"]],e:"。",en:"I also have a younger sister.",vi:"Mình còn có một em gái."},
+  {t:[["我","wǒ"],["家","jiā"],["只","zhǐ"],["有","yǒu"],["三","sān"],["口","kǒu"],["人","rén"]],e:"。",en:"There are only three people in my family.",vi:"Nhà mình chỉ có ba người."}]},
+ {t:3,l:2,zh:"时间与日常",cd:["能问几点了，说出某个时间在做什么","I can ask the time and say what I do at a certain time.","Em hỏi được mấy giờ và nói mình làm gì lúc đó."],q:[
+  {t:[["现在","xiànzài"],["几点","jǐ diǎn"]],e:"？",en:"What time is it now?",vi:"Bây giờ là mấy giờ?"},
+  {t:[["现在","xiànzài"],["八","bā"],["点","diǎn"]],e:"。",en:"It's eight o'clock now.",vi:"Bây giờ là tám giờ."},
+  {t:[["现在","xiànzài"],["七","qī"],["点","diǎn"],["十","shí"],["分","fēn"]],e:"。",en:"It's seven ten now.",vi:"Bây giờ là bảy giờ mười phút."},
+  {t:[["你","nǐ"],["几点","jǐ diǎn"],["起床","qǐchuáng"]],e:"？",en:"What time do you get up?",vi:"Bạn dậy lúc mấy giờ?"},
+  {t:[["我","wǒ"],["早上","zǎoshang"],["六","liù"],["点","diǎn"],["起床","qǐchuáng"]],e:"。",en:"I get up at six in the morning.",vi:"Mình dậy lúc sáu giờ sáng.",alt:[["早上","我","六","点","起床"]]},
+  {t:[["我","wǒ"],["晚上","wǎnshang"],["九","jiǔ"],["点","diǎn"],["睡觉","shuìjiào"]],e:"。",en:"I go to bed at nine in the evening.",vi:"Mình đi ngủ lúc chín giờ tối.",alt:[["晚上","我","九","点","睡觉"]]},
+  {t:[["今天","jīntiān"],["星期几","xīngqī jǐ"]],e:"？",en:"What day is it today?",vi:"Hôm nay là thứ mấy?"},
+  {t:[["今天","jīntiān"],["星期一","xīngqīyī"]],e:"。",en:"Today is Monday.",vi:"Hôm nay là thứ Hai."},
+  {t:[["明天","míngtiān"],["十","shí"],["月","yuè"],["二十五","èrshíwǔ"],["号","hào"]],e:"。",en:"Tomorrow is the 25th of October.",vi:"Ngày mai là ngày hai mươi lăm tháng mười."},
+  {t:[["你","nǐ"],["早上","zǎoshang"],["几点","jǐ diǎn"],["上学","shàngxué"]],e:"？",en:"What time do you go to school in the morning?",vi:"Buổi sáng bạn đi học lúc mấy giờ?",alt:[["早上","你","几点","上学"]]},
+  {t:[["现在","xiànzài"],["八","bā"],["点","diǎn"],["半","bàn"]],e:"。",en:"It's half past eight now.",vi:"Bây giờ là tám giờ rưỡi."},
+  {t:[["你","nǐ"],["今天","jīntiān"],["忙","máng"],["吗","ma"]],e:"？",en:"Are you busy today?",vi:"Hôm nay bạn có bận không?",alt:[["今天","你","忙","吗"]]},
+  {t:[["我","wǒ"],["正在","zhèngzài"],["吃","chī"],["晚饭","wǎnfàn"]],e:"。",en:"I'm having dinner right now.",vi:"Mình đang ăn tối."}]},
+ {t:3,l:3,zh:"时间与日常",cd:["能按顺序说出自己一天的作息","I can describe my day in order.","Em kể được một ngày của mình theo thứ tự."],q:[
+  {t:[["我","wǒ"],["每天","měitiān"],["早上","zǎoshang"],["七","qī"],["点","diǎn"],["起床","qǐchuáng"]],e:"。",en:"I get up at seven every morning.",vi:"Mỗi sáng mình dậy lúc bảy giờ.",alt:[["每天","早上","我","七","点","起床"]]},
+  {t:[["我","wǒ"],["先","xiān"],["起床","qǐchuáng"],["，",""],["然后","ránhòu"],["吃饭","chīfàn"]],e:"。",en:"First I get up, then I eat.",vi:"Mình thức dậy trước, sau đó ăn cơm."},
+  {t:[["吃饭","chīfàn"],["以后","yǐhòu"],["，",""],["我","wǒ"],["上学","shàngxué"]],e:"。",en:"After eating, I go to school.",vi:"Ăn cơm xong, mình đi học."},
+  {t:[["我","wǒ"],["中午","zhōngwǔ"],["十二","shí'èr"],["点","diǎn"],["吃饭","chīfàn"]],e:"。",en:"I eat lunch at twelve noon.",vi:"Mình ăn cơm lúc mười hai giờ trưa.",alt:[["中午","我","十二","点","吃饭"]]},
+  {t:[["我","wǒ"],["下午","xiàwǔ"],["在","zài"],["家","jiā"]],e:"。",en:"I am at home in the afternoon.",vi:"Buổi chiều mình ở nhà.",alt:[["下午","我","在","家"]]},
+  {t:[["我","wǒ"],["每天","měitiān"],["晚上","wǎnshang"],["十","shí"],["点","diǎn"],["睡觉","shuìjiào"]],e:"。",en:"I go to bed at ten every night.",vi:"Mỗi tối mình đi ngủ lúc mười giờ.",alt:[["每天","晚上","我","十","点","睡觉"]]},
+  {t:[["我","wǒ"],["先","xiān"],["吃饭","chīfàn"],["，",""],["然后","ránhòu"],["上学","shàngxué"]],e:"。",en:"First I eat, then I go to school.",vi:"Mình ăn cơm trước, sau đó đi học."},
+  {t:[["起床","qǐchuáng"],["以后","yǐhòu"],["，",""],["我","wǒ"],["先","xiān"],["吃饭","chīfàn"]],e:"。",en:"After getting up, I eat first.",vi:"Thức dậy xong, mình ăn cơm trước."},
+  {t:[["下班","xiàbān"],["以后","yǐhòu"],["，",""],["妈妈","māma"],["回","huí"],["家","jiā"],["做饭","zuòfàn"]],e:"。",en:"After work, Mum goes home to cook.",vi:"Tan làm xong, mẹ về nhà nấu cơm."},
+  {t:[["我","wǒ"],["每天","měitiān"],["学习","xuéxí"],["一个","yí ge"],["小时","xiǎoshí"]],e:"。",en:"I study for an hour every day.",vi:"Mỗi ngày mình học một tiếng.",alt:[["每天","我","学习","一个","小时"]]},
+  {t:[["你","nǐ"],["先","xiān"],["看","kàn"],["一下","yíxià"]],e:"。",en:"Have a look first.",vi:"Bạn xem trước một chút."}]},
+ {t:4,l:2,zh:"学校与学习",cd:["能说喜欢哪门课，听懂老师的基本指令","I can say which subjects I like and understand basic classroom instructions.","Em nói được mình thích môn nào và hiểu các yêu cầu đơn giản của cô giáo."],q:[
+  {t:[["你","nǐ"],["喜欢","xǐhuan"],["什么","shénme"],["课","kè"]],e:"？",en:"Which class do you like?",vi:"Bạn thích môn gì?"},
+  {t:[["我","wǒ"],["喜欢","xǐhuan"],["中文","Zhōngwén"],["课","kè"]],e:"。",en:"I like Chinese class.",vi:"Mình thích môn tiếng Trung."},
+  {t:[["我","wǒ"],["不喜欢","bù xǐhuan"],["数学","shùxué"],["课","kè"]],e:"。",en:"I don't like maths class.",vi:"Mình không thích môn toán."},
+  {t:[["请","qǐng"],["听","tīng"],["老师","lǎoshī"],["说","shuō"]],e:"。",en:"Please listen to the teacher.",vi:"Hãy nghe cô giáo nói."},
+  {t:[["请","qǐng"],["写","xiě"],["汉字","Hànzì"]],e:"。",en:"Please write Chinese characters.",vi:"Hãy viết chữ Hán."},
+  {t:[["我们","wǒmen"],["八","bā"],["点","diǎn"],["上课","shàngkè"]],e:"。",en:"We start class at eight.",vi:"Chúng mình vào học lúc tám giờ.",alt:[["八","点","我们","上课"]]},
+  {t:[["你","nǐ"],["能","néng"],["读","dú"],["这个","zhège"],["字","zì"],["吗","ma"]],e:"？",en:"Can you read this character?",vi:"Bạn đọc được chữ này không?"},
+  {t:[["我","wǒ"],["不","bù"],["知道","zhīdao"]],e:"。",en:"I don't know.",vi:"Mình không biết."},
+  {t:[["我","wǒ"],["有","yǒu"],["一个","yí ge"],["问题","wèntí"]],e:"。",en:"I have a question.",vi:"Mình có một câu hỏi."},
+  {t:[["老师","lǎoshī"],["，",""],["我","wǒ"],["能","néng"],["问","wèn"],["一个","yí ge"],["问题","wèntí"],["吗","ma"]],e:"？",en:"Teacher, may I ask a question?",vi:"Thưa cô, em hỏi một câu được không?"},
+  {t:[["我","wǒ"],["在","zài"],["学校","xuéxiào"],["学习","xuéxí"],["汉语","Hànyǔ"]],e:"。",en:"I study Chinese at school.",vi:"Mình học tiếng Hán ở trường."},
+  {t:[["我","wǒ"],["有","yǒu"],["三","sān"],["本","běn"],["书","shū"]],e:"。",en:"I have three books.",vi:"Mình có ba quyển sách."}]},
+ {t:4,l:3,zh:"学校与学习",cd:["能简单介绍自己的学校生活","I can talk about my school life, including how I get to school.","Em giới thiệu đơn giản được cuộc sống ở trường, kể cả cách đi học."],q:[
+  {t:[["我","wǒ"],["每天","měitiān"],["坐","zuò"],["校车","xiàochē"],["上学","shàngxué"]],e:"。",en:"I take the school bus to school every day.",vi:"Mỗi ngày mình đi học bằng xe buýt trường.",alt:[["每天","我","坐","校车","上学"]]},
+  {t:[["我","wǒ"],["最","zuì"],["喜欢","xǐhuan"],["中文","Zhōngwén"],["课","kè"]],e:"。",en:"I like Chinese class best.",vi:"Mình thích môn tiếng Trung nhất."},
+  {t:[["中文","Zhōngwén"],["课","kè"],["很","hěn"],["有意思","yǒu yìsi"]],e:"。",en:"Chinese class is very interesting.",vi:"Môn tiếng Trung rất thú vị."},
+  {t:[["因为","yīnwèi"],["数学","shùxué"],["很","hěn"],["有意思","yǒu yìsi"],["，",""],["所以","suǒyǐ"],["我","wǒ"],["喜欢","xǐhuan"],["数学","shùxué"]],e:"。",en:"Because maths is interesting, I like maths.",vi:"Vì môn toán rất thú vị nên mình thích môn toán."},
+  {t:[["我","wǒ"],["每天","měitiān"],["走路","zǒulù"],["上学","shàngxué"]],e:"。",en:"I walk to school every day.",vi:"Mỗi ngày mình đi bộ đến trường.",alt:[["每天","我","走路","上学"]]},
+  {t:[["对","duì"],["，",""],["我","wǒ"],["是","shì"],["中学生","zhōngxuéshēng"]],e:"。",en:"Yes, I'm a secondary student.",vi:"Đúng, mình là học sinh trung học."},
+  {t:[["我的","wǒ de"],["学校","xuéxiào"],["很","hěn"],["大","dà"]],e:"。",en:"My school is very big.",vi:"Trường của mình rất to."},
+  {t:[["我","wǒ"],["先","xiān"],["上","shàng"],["中文","Zhōngwén"],["课","kè"],["，",""],["然后","ránhòu"],["上","shàng"],["数学","shùxué"],["课","kè"]],e:"。",en:"First I have Chinese class, then maths class.",vi:"Mình học tiếng Trung trước, sau đó học toán."},
+  {t:[["因为","yīnwèi"],["我","wǒ"],["坐","zuò"],["校车","xiàochē"],["，",""],["所以","suǒyǐ"],["我","wǒ"],["每天","měitiān"],["七","qī"],["点","diǎn"],["起床","qǐchuáng"]],e:"。",en:"Because I take the school bus, I get up at seven every day.",vi:"Vì mình đi xe buýt trường nên mỗi ngày mình dậy lúc bảy giờ."},
+  {t:[["我","wǒ"],["觉得","juéde"],["汉字","Hànzì"],["很","hěn"],["有意思","yǒu yìsi"]],e:"。",en:"I think Chinese characters are interesting.",vi:"Mình thấy chữ Hán rất thú vị."}]}
+];
+const THEMES=[["个人与社交","Me & Friends","Bản thân và bạn bè"],["家庭与住房","Family & Home","Gia đình và nhà ở"],["时间与日常","Time & Daily Routine","Thời gian và sinh hoạt hằng ngày"],["学校与学习","School & Learning","Trường học và học tập"]];
+const L1CD=[["能说出问候语、数字和自己的中文名字","I can say greetings, numbers and my Chinese name.","Em nói được lời chào, các số và tên tiếng Trung của mình."],["能说出家人称呼和房间名称","I can name family members and rooms in a house.","Em nói được cách gọi người trong gia đình và tên các phòng."],["能认读时间（几点几分）、星期和日期","I can read the time (hours and minutes), days and dates.","Em đọc được giờ (giờ và phút), thứ và ngày tháng."],["能说出学校设施、科目和文具","I can name school places, subjects and stationery.","Em nói được tên các nơi trong trường, các môn học và đồ dùng học tập."]];
+const LVL=[["Level 1 · 说出名称","Level 1 · Naming","Cấp 1 · Gọi tên"],["Level 2 · 问答交流","Level 2 · Asking & answering","Cấp 2 · Hỏi đáp"],["Level 3 · 连贯描述","Level 3 · Describing","Cấp 3 · Miêu tả"]];
+const tName=ti=>THEMES[ti][LI()];
+const lvName=l=>LVL[l-1][LI()];
+
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+let lang=store.get("lxs-lang","en"), py=store.get("lxs-py","1")==="1";
+let run=null; // {si, order:[], i, items:[{tries, first, shown, ok}], tray:[], bankOrder:[], state}
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const zh=q=>q.t.map(x=>x[0]).join("")+q.e;
+const pyOf=q=>q.t.map(x=>x[1]).filter(Boolean).join(" ");
+const doneKey=si=>"lxs-done-"+SETS[si].t+"-"+SETS[si].l;
+
+$("who").value=store.get("lxs-name","");
+$("who").addEventListener("input",()=>store.set("lxs-name",$("who").value.trim()));
+document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lang=b.dataset.l;store.set("lxs-lang",lang);syncTop();render()});
+$("pyOn").onclick=()=>{py=true;store.set("lxs-py","1");syncTop()};
+$("pyOff").onclick=()=>{py=false;store.set("lxs-py","0");syncTop()};
+function syncTop(){
+  document.querySelectorAll("[data-l]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
+  $("pyOn").setAttribute("aria-pressed",String(py));$("pyOff").setAttribute("aria-pressed",String(!py));
+  document.body.classList.toggle("nopy",!py);
+}
+const LI=()=>lang==="vi"?2:1;
+
+function render(){
+  const app=$("app");
+  if(!run){renderPicker(app);return}
+  if(run.i<run.order.length){renderQ(app);return}
+  renderResult(app);
+}
+function renderPicker(app){
+  let h=`<section class="panel"><h2>选一组句子 · ${lang==="vi"?"Chọn một bộ câu":"Choose a set"}</h2>
+  <p class="note">${lang==="vi"?"Nhìn câu tiếng Việt, xếp các thẻ chữ Hán thành câu tiếng Trung. Làm xong có thể lưu PDF gửi cô giáo.":"Read the English sentence and put the Chinese word tiles in order. When you finish, save a PDF to send to your teacher."}</p>
+  <div class="scroll"><table class="sets"><thead><tr><th>${lang==="vi"?"Chủ đề":"Theme"}</th>${[1,2,3].map(l=>`<th>${lvName(l)}</th>`).join("")}</tr></thead><tbody>`;
+  THEMES.forEach((T,ti)=>{
+    h+=`<tr><td class="tn">${ti+1}. ${tName(ti)}<div class="note" style="font-weight:400">${T[0]}</div></td>`;
+    h+=`<td><div class="setbtn l1" aria-disabled="true"><b>Quizlet</b><span>${L1CD[ti][LI()]}</span></div></td>`;
+    [2,3].forEach(l=>{const si=SETS.findIndex(s=>s.t===ti+1&&s.l===l),S=SETS[si],d=store.get(doneKey(si),"");
+      h+=`<td><button class="setbtn" data-si="${si}"><b>${S.q.length} ${lang==="vi"?"câu":"sentences"}</b><span>${S.cd[LI()]}</span>${d?`<span class="done">✓ ${esc(d)}</span>`:""}</button></td>`});
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div><p class="note">${lang==="vi"?"Cấp 1 là từ vựng, luyện trên Quizlet.":"Level 1 is vocabulary — practise it on Quizlet."}</p></section>`;
+  app.innerHTML=h;
+  app.querySelectorAll("[data-si]").forEach(b=>b.onclick=()=>start(+b.dataset.si));
+}
+function start(si){
+  const S=SETS[si];
+  run={si,order:shuffle(S.q.map((_,i)=>i)),i:0,items:S.q.map(()=>({tries:0,first:"",shown:false,ok:false})),tray:[],bank:null,state:"build"};
+  newQ();render();window.scrollTo({top:0,behavior:"smooth"});
+}
+function newQ(){
+  const q=curQ();let b=shuffle(q.t.map((_,k)=>k));
+  if(b.every((k,j)=>k===j)&&b.length>1)b=b.slice(1).concat(b[0]);
+  run.bank=b;run.tray=[];run.state="build";
+}
+const curQ=()=>SETS[run.si].q[run.order[run.i]];
+const curItem=()=>run.items[run.order[run.i]];
+function tileHTML(tk,idx,where,used){return `<button class="tile${used?" used":""}" data-${where}="${idx}" aria-label="${esc(tk[0])}"${used?' tabindex="-1" aria-hidden="true"':""}><span class="h">${esc(tk[0])}</span><span class="p">${esc(tk[1])}</span></button>`}
+function renderQ(app){
+  const S=SETS[run.si],q=curQ(),it=curItem(),locked=run.state==="ok"||run.state==="shown";
+  const prompt=lang==="vi"?q.vi:q.en;
+  let fb="";
+  if(run.state==="ok")fb=`<div class="fb ok" role="status">${it.tries===1?"对了！一次就对。":"对了！"}<span class="ans">${esc(zh(q))}<span class="p">${esc(pyOf(q))}</span></span></div>`;
+  else if(run.state==="bad")fb=`<div class="fb bad" role="status">还不对，再试一次。Not quite — try again.</div>`;
+  else if(run.state==="shown")fb=`<div class="fb show" role="status">答案 Answer<span class="ans">${esc(zh(q))}<span class="p">${esc(pyOf(q))}</span></span></div>`;
+  const dots=run.order.map((qi,k)=>{const x=run.items[qi];const c=x.shown?"shown":x.ok?(x.tries===1?"first":"retry"):"";return `<span class="dot ${c}${k===run.i?" cur":""}">${k+1}</span>`}).join("");
+  app.innerHTML=`<section class="panel">
+    <div class="qhead"><span class="qnum">${run.i+1} / ${run.order.length}</span><span class="pill">${S.t}. ${tName(S.t-1)} · ${lvName(S.l)}</span></div>
+    <p class="prompt">${esc(prompt)}</p>
+    <div class="label">我的句子 · My sentence</div>
+    <div class="tray ${run.state==="ok"?"ok":run.state==="bad"?"bad":""}" id="tray">${run.tray.length?run.tray.map(k=>tileHTML(q.t[k],k,"tr",false)).join(""):'<span class="ph">点下面的词，按顺序放进来。Tap the words below in order.</span>'}${run.tray.length?`<span class="end">${q.e}</span>`:""}</div>
+    <div class="label">词语 · Words</div>
+    <div class="bank">${run.bank.map(k=>tileHTML(q.t[k],k,"bk",run.tray.includes(k))).join("")}</div>
+    ${fb}
+    <div class="btnrow"><div>
+      ${locked?"":`<button class="btn primary" id="bCheck" ${run.tray.length===q.t.length?"":"disabled"}>检查 Check</button><button class="btn" id="bClear" ${run.tray.length?"":"disabled"}>清空 Clear</button>`}
+      ${locked&&"speechSynthesis" in window?`<button class="btn" id="bSay">听一听 Listen</button>`:""}
+    </div><div>
+      ${locked?"":`<button class="btn" id="bShow" ${it.tries?"":"disabled"} title="先试一次才能看答案">看答案 Show answer</button>`}
+      ${locked?`<button class="btn primary" id="bNext">${run.i+1<run.order.length?"下一题 Next":"看结果 See results"}</button>`:""}
+    </div></div>
+    <div class="dots" aria-label="进度">${dots}</div>
+    <div><button class="btn" id="bQuit" style="font-size:13px;padding:6px 12px">返回 Back to sets</button></div>
+  </section>`;
+  if(!locked){
+    app.querySelectorAll("[data-bk]").forEach(b=>b.onclick=()=>{const k=+b.dataset.bk;if(!run.tray.includes(k)){run.tray.push(k);if(run.state==="bad")run.state="build";render()}});
+    app.querySelectorAll("[data-tr]").forEach(b=>b.onclick=()=>{run.tray=run.tray.filter(k=>k!==+b.dataset.tr);if(run.state==="bad")run.state="build";render()});
+    if($("bCheck"))$("bCheck").onclick=check;
+    if($("bClear"))$("bClear").onclick=()=>{run.tray=[];run.state="build";render()};
+    if($("bShow"))$("bShow").onclick=()=>{curItem().shown=true;run.state="shown";render()};
+  } else {
+    $("bNext").onclick=()=>{run.i++;if(run.i<run.order.length)newQ();else finish();render()};
+    if($("bSay"))$("bSay").onclick=()=>say(zh(q));
+  }
+  $("bQuit").onclick=()=>{run=null;render()};
+}
+function check(){
+  const q=curQ(),it=curItem(),mine=run.tray.map(k=>q.t[k][0]);
+  it.tries++;if(it.tries===1)it.first=mine.join("")+q.e;
+  const ans=[q.t.map(x=>x[0])].concat(q.alt||[]);
+  if(ans.some(a=>a.join("|")===mine.join("|"))){it.ok=true;run.state="ok"}else run.state="bad";
+  render();
+}
+// pick the most natural Mandarin voice this device offers (neural/online voices first)
+const VOICE_RANK=[/xiaoxiao|xiaoyi|yunxi|natural|online/i,/google.*(普通话|mandarin|chinese)|google/i,/lili|yu-?shu|tingting|ting-ting|premium|enhanced|增强/i,/huihui|kangkang|yaoyao/i];
+let zhVoice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices().filter(v=>/^(zh|cmn)/i.test(v.lang)&&!/(HK|TW|yue|Hant)/i.test(v.lang+v.name));if(!vs.length)return null;const score=v=>{const i=VOICE_RANK.findIndex(r=>r.test(v.name));return (i<0?9:i)+(/CN|Hans/i.test(v.lang)?0:.5)};vs.sort((a,b)=>score(a)-score(b));return vs[0]}catch(e){return null}}
+try{zhVoice=pickVoice();speechSynthesis.addEventListener("voiceschanged",()=>{zhVoice=pickVoice()})}catch(e){}
+function say(text){try{const u=new SpeechSynthesisUtterance(text);if(zhVoice)u.voice=zhVoice;u.lang=zhVoice?zhVoice.lang:"zh-CN";u.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+function finish(){
+  const S=SETS[run.si];run.date=today();
+  const c=counts();store.set(doneKey(run.si),`${run.date} · ${c.first}/${S.q.length}`);
+}
+function counts(){const it=run.items;return{first:it.filter(x=>x.ok&&x.tries===1&&!x.shown).length,retry:it.filter(x=>x.ok&&x.tries>1).length,shown:it.filter(x=>x.shown).length}}
+function status(x){return x.shown?"shown":x.tries===1?"first":"retry"}
+const TAG={first:"一次就对",retry:"改了以后对",shown:"看了答案"};
+function renderResult(app){
+  const S=SETS[run.si],c=counts(),name=$("who").value.trim();
+  const rows=S.q.map((q,qi)=>{const x=run.items[qi],s=status(x);
+    return `<tr><td class="hz">${esc(zh(q))}${s!=="first"&&x.first?`<span class="mine">第一次 First try：${esc(x.first)}</span>`:""}</td><td><span class="tag ${s}">${TAG[s]}</span></td></tr>`}).join("");
+  app.innerHTML=`<section class="panel">
+    <h2>完成了！${name?esc(name)+" · ":""}${S.t}. ${tName(S.t-1)} · ${lvName(S.l)}</h2>
+    <div class="score"><div><b>${c.first}</b><span>一次就对 First try</span></div><div><b>${c.retry}</b><span>改了以后对 After a retry</span></div><div><b>${c.shown}</b><span>看了答案 Answer shown</span></div></div>
+    <div class="scroll"><table class="rlist"><tbody>${rows}</tbody></table></div>
+    ${name?"":`<p class="msg err">先在上面写你的名字，再保存。Write your name at the top before saving.</p>`}
+    <div class="btnrow"><div><button class="btn primary" id="bPdf" hidden>保存 PDF · Save PDF</button><button class="btn" id="bCopy">复制结果 · Copy result</button></div>
+      <div><button class="btn" id="bAgain">再做一次 Try again</button><button class="btn" id="bSets">换一组 Other sets</button></div></div>
+    <p class="msg" id="rMsg" aria-live="polite"></p>
+  </section>`;
+  $("bAgain").onclick=()=>start(run.si);
+  $("bSets").onclick=()=>{run=null;render()};
+  $("bCopy").onclick=async()=>{const t=resultText();try{await navigator.clipboard.writeText(t);setMsg("已复制，可以贴到微信、Zalo 或 WhatsApp 发给老师。Copied.")}catch(e){setMsg("没能自动复制。请截图发给老师。Please take a screenshot instead.",true)}};
+  if(downloads){$("bPdf").hidden=false;$("bPdf").onclick=savePdf}
+}
+function setMsg(t,err){const m=$("rMsg");if(m){m.textContent=t;m.classList.toggle("err",!!err)}}
+function resultText(){
+  const S=SETS[run.si],c=counts(),name=$("who").value.trim()||"(no name)";
+  return [`乐学坊句子练习 · ${name} · ${run.date}`,`${S.t}. ${S.zh} · Level ${S.l}`,`一次就对 ${c.first} · 改了以后对 ${c.retry} · 看了答案 ${c.shown} / ${S.q.length}`,
+    ...S.q.map((q,qi)=>{const x=run.items[qi],s=status(x);return `${s==="first"?"✓":s==="retry"?"↻":"?"} ${zh(q)}${s!=="first"&&x.first?"（第一次："+x.first+"）":""}`})].join("\n");
+}
+// ---- PDF: draw the report on a canvas (keeps Chinese glyphs), place it on an A4 page ----
+async function savePdf(){
+  const name=$("who").value.trim();
+  if(!name){setMsg("先在上面写你的名字。Write your name at the top first.",true);$("who").focus();return}
+  if(!window.jspdf){setMsg("PDF 工具没有加载，请用“复制结果”。The PDF tool did not load — use Copy result.",true);return}
+  try{await document.fonts.ready}catch(e){}
+  const S=SETS[run.si],c=counts(),W=1240,H=1754,cv=document.createElement("canvas");cv.width=W;cv.height=H;
+  const g=cv.getContext("2d"),HAN='"Noto Serif SC","Songti SC",serif',UI='"Noto Sans SC","PingFang SC",sans-serif';
+  g.fillStyle="#ffffff";g.fillRect(0,0,W,H);
+  g.fillStyle="#2f7a63";g.fillRect(0,0,W,14);
+  g.fillStyle="#1b2a27";g.font=`700 52px ${HAN}`;g.fillText("乐学坊句子练习",90,130);
+  g.font=`400 28px ${UI}`;g.fillStyle="#5b6b66";
+  g.fillText(`名字 Name：${name}      日期 Date：${run.date}`,90,190);
+  g.fillText(`${S.t}. ${S.zh} · Level ${S.l} — ${S.cd[0]}`,90,236);
+  const box=(x,label,val,col)=>{g.fillStyle=col;g.font=`700 64px ${UI}`;g.fillText(String(val),x,340);g.fillStyle="#5b6b66";g.font=`400 24px ${UI}`;g.fillText(label,x,378)};
+  box(90,"一次就对 First try",c.first,"#22703c");box(470,"改了以后对 After a retry",c.retry,"#2f7a63");box(880,"看了答案 Answer shown",c.shown,"#8a5a00");
+  g.strokeStyle="#d3dcd6";g.lineWidth=2;g.beginPath();g.moveTo(90,420);g.lineTo(W-90,420);g.stroke();
+  let y=490;
+  S.q.forEach((q,qi)=>{const x=run.items[qi],s=status(x);
+    g.fillStyle="#5b6b66";g.font=`400 24px ${UI}`;g.fillText(String(qi+1).padStart(2," "),90,y);
+    g.fillStyle="#1b2a27";g.font=`500 38px ${HAN}`;g.fillText(zh(q),150,y);
+    const tc=s==="first"?"#22703c":s==="retry"?"#2f7a63":"#8a5a00";g.fillStyle=tc;g.font=`500 24px ${UI}`;
+    const tw=g.measureText(TAG[s]).width;g.fillText(TAG[s],W-90-tw,y);
+    y+=40;
+    if(s!=="first"&&x.first){g.fillStyle="#b23a2c";g.font=`400 26px ${HAN}`;g.fillText("第一次 First try：“"+x.first+"”",150,y);y+=40}
+    y+=34;
+  });
+  g.fillStyle="#8a9792";g.font=`400 20px ${UI}`;g.fillText("✓ 一次就对 = 第一次检查就排对；改了以后对 = 检查后改正；看了答案 = 没排对，看了正确答案。",90,H-70);
+  const pdf=new window.jspdf.jsPDF({unit:"mm",format:"a4"});
+  pdf.addImage(cv.toDataURL("image/jpeg",0.92),"JPEG",0,0,210,297);
+  const blob=pdf.output("blob");
+  try{await downloads.save({filename:`句子练习-${name}-主题${S.t}-L${S.l}-${run.date}.pdf`,data:blob});setMsg("PDF 已保存。请把它发给老师。Saved — send it to your teacher.")}
+  catch(e){if(e&&e.code==="declined")setMsg("没有保存。Not saved.");else if(e&&e.code==="rate_limited")setMsg("请稍等再试。Please wait and try again.",true);else{setMsg("这里不能保存 PDF，请用“复制结果”或截图。PDF saving isn't available here — use Copy result or a screenshot.",true);$("bPdf").hidden=true}}
+}
+let downloads=null;
+syncTop();render();
+(async()=>{try{downloads=window.claude&&window.claude.use?await window.claude.use("downloads"):null}catch(e){downloads=null}
+  if(!downloads)downloads={save:async({filename,data})=>{filename=filename.replace("句子练习","Lexuefang-sentences").replace("主题","T").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\x20-\x7e]/g,"").replace(/\s+/g,"_");const u=URL.createObjectURL(data),a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}};
+  if(downloads&&run&&run.i>=run.order.length&&$("bPdf")){$("bPdf").hidden=false;$("bPdf").onclick=savePdf}})();
+</script>
+
+</body></html>
