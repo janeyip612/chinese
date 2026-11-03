@@ -1,0 +1,401 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>TNIS 中文路径图</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
+<style>
+/* Layout: a proposal canvas — one big pathway chart (ACTFL rises up the page, grades run across), a detail drawer beside it, then zoom-in sections for today's TNIS courses, the crosswalk and the shared topic map */
+:root{
+  --bg:#eef2f1; --surface:#ffffff; --ink:#15242a; --muted:#56676b; --line:#d2dcda; --soft:#e3ebe9;
+  --accent:#1f6f6b; --accent-ink:#ffffff; --accent-soft:#d5e9e6;
+  --p3:#1f6f6b; --p6:#4f6fb0; --p9:#b0662a;
+  --gold:#a8781a; --gold-soft:#f4e8cc; --now:#c2413b; --now-soft:#f7dedb;
+  --f-disp:"Noto Serif SC","Songti SC",serif;
+  --f-ui:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#101a1c; --surface:#182427; --ink:#e3ecea; --muted:#9bb0ad; --line:#2c3c3e; --soft:#1e2d30;
+  --accent:#62c0b6; --accent-ink:#0c1a19; --accent-soft:#1c3a37;
+  --p3:#62c0b6; --p6:#8eaaf0; --p9:#e39a5c;
+  --gold:#e3b75a; --gold-soft:#3a3018; --now:#f08178; --now-soft:#3b2020; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101a1c; --surface:#182427; --ink:#e3ecea; --muted:#9bb0ad; --line:#2c3c3e; --soft:#1e2d30;
+  --accent:#62c0b6; --accent-ink:#0c1a19; --accent-soft:#1c3a37;
+  --p3:#62c0b6; --p6:#8eaaf0; --p9:#e39a5c;
+  --gold:#e3b75a; --gold-soft:#3a3018; --now:#f08178; --now-soft:#3b2020; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.6}
+body.l-zh .e,body.l-en .z{display:none!important}
+.wrap{max-width:1200px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 64px;display:grid;gap:36px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{display:grid;gap:14px}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.eyebrow{font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase}
+.seg{display:flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:5px 14px;font-size:14px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+h1{font-family:var(--f-disp);font-size:clamp(30px,5.2vw,52px);line-height:1.15;margin:0;text-wrap:balance;letter-spacing:.01em}
+.lede{font-size:clamp(16px,2vw,19px);color:var(--ink);margin:0}
+.facts{display:flex;flex-wrap:wrap;gap:6px 22px}
+.fact{font-size:14px;color:var(--muted)}
+.fact b{color:var(--ink);font-size:16px;margin-left:4px}
+.fact b{font-variant-numeric:tabular-nums}
+nav.toc{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;background:var(--bg);padding-block:8px;border-bottom:1px solid var(--line)}
+@media (max-width:760px){nav.toc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+nav.toc a{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--accent-ink);background:var(--accent);text-decoration:none;border-radius:10px;padding:10px 12px;line-height:1.25}
+nav.toc a:hover{filter:brightness(1.08)}
+nav.toc a i{font-style:normal;font-size:12px;font-weight:700;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--accent-ink) 22%,transparent);flex:none}
+section{scroll-margin-top:84px}
+section{display:grid;gap:16px;scroll-margin-top:12px}
+h2{font-family:var(--f-disp);font-size:clamp(22px,3vw,30px);margin:0;text-wrap:balance}
+h2 small{display:block;font-family:var(--f-ui);font-size:13px;font-weight:400;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.intro{color:var(--muted);margin:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+/* map */
+.mapgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.mapgrid{grid-template-columns:minmax(0,1fr)}}
+section>*,header>*,.wrap>*{min-width:0}
+.wrap{grid-template-columns:minmax(0,1fr)}
+.chartbox{overflow-x:auto}
+svg.path{width:100%;min-width:620px;height:auto;display:block}
+svg text{font-family:var(--f-ui);fill:var(--muted);font-size:12px}
+svg .lvl{font-size:11.5px;fill:var(--ink)}
+svg .grid{stroke:var(--line);stroke-width:1}
+svg .band{cursor:pointer}
+svg .band rect{fill:var(--soft);stroke:var(--line)}
+svg .band.now rect{fill:var(--now-soft);stroke:var(--now)}
+svg .band.sel rect{stroke:var(--ink);stroke-width:2}
+svg .band text{fill:var(--ink);font-size:12px;font-weight:500}
+svg .route{fill:none;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;cursor:pointer;transition:opacity .2s}
+svg .route.dim{opacity:.18}
+svg .node{cursor:pointer}
+svg .node circle{fill:var(--gold-soft);stroke:var(--gold);stroke-width:2}
+svg .node.sel circle{fill:var(--gold)}
+svg .node text{fill:var(--gold);font-size:11px;font-weight:700}
+svg .ref{stroke-dasharray:5 5;stroke-width:1.4}
+svg .apzone{fill:var(--accent-soft);opacity:.55}
+.legend{display:flex;flex-wrap:wrap;gap:8px}
+.legend button{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:13.5px}
+.legend button[aria-pressed="true"]{border-color:var(--ink)}
+.legend i{width:22px;height:4px;border-radius:2px;display:inline-block}
+.note{font-size:13px;color:var(--muted)}
+.drawer{position:sticky;top:12px;display:grid;gap:12px}
+.drawer h3{margin:0;font-size:19px;font-family:var(--f-disp)}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--soft);color:var(--ink);margin-right:4px}
+.tag.now{background:var(--now-soft);color:var(--now)}
+.tag.plan{background:var(--accent-soft);color:var(--accent)}
+.tag.p2{background:var(--soft);color:var(--muted)}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14.5px}
+dl.kv dt{color:var(--muted);white-space:nowrap}
+dl.kv dd{margin:0;min-width:0}
+.linkbtn{border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:8px;padding:6px 12px;font-size:14px}
+/* courses */
+.courses{display:grid;gap:14px}
+.course{display:grid;gap:12px}
+.chead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.chead h3{margin:0;font-size:20px;font-family:var(--f-disp)}
+.chead .meta{font-size:13px;color:var(--muted)}
+.courses>*,.course>*{min-width:0}
+.tlscroll{overflow-x:auto;padding:22px 0 10px}
+.timeline{position:relative;display:flex;gap:3px;height:44px;min-width:600px}
+.unit{flex-grow:1;flex-basis:0;border-radius:6px;background:var(--soft);border:1px solid var(--line);padding:3px 6px;font-size:12px;line-height:1.25;overflow:hidden;cursor:pointer;text-align:left;min-width:0}
+.unit.done{background:var(--accent-soft);border-color:var(--accent)}
+.unit.cur{background:var(--now-soft);border-color:var(--now)}
+.unit b{display:block;font-size:12px}
+.unit span{color:var(--muted);font-size:11px;white-space:nowrap}
+.marker{position:absolute;top:-8px;bottom:-8px;width:2px;background:var(--now);pointer-events:none}
+.marker::after{content:attr(data-l);position:absolute;top:-18px;left:4px;font-size:11px;color:var(--now);white-space:nowrap;font-weight:700}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.stat{border-top:2px solid var(--line);padding-top:8px;display:grid;gap:2px}
+.stat .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.stat .v{font-size:15px}
+.big{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.unitbox{background:var(--bg);border-radius:10px;padding:12px;font-size:14.5px;display:grid;gap:4px}
+/* crosswalk */
+.tablewrap{overflow-x:auto}
+table.cw{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+table.cw th,table.cw td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+table.cw th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+table.cw td.lv{font-weight:700;white-space:nowrap}
+table.cw tr.hl td{background:var(--accent-soft)}
+table.cw tr.hl td.lv{box-shadow:inset 4px 0 0 var(--accent)}
+.ms{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;vertical-align:middle}
+.callouts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.callout{border-left:3px solid var(--gold);background:var(--surface);border-radius:0 10px 10px 0;padding:12px 14px;font-size:14.5px}
+.callout b{display:block;margin-bottom:2px}
+/* topic map */
+.tmhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+table.tm{border-collapse:separate;border-spacing:5px;width:100%;min-width:640px}
+table.tm th{font-size:12px;color:var(--muted);font-weight:500;text-align:left;padding:0 4px}
+table.tm td.tn{font-weight:700;font-size:14px;white-space:nowrap;padding-right:6px}
+.cell{width:100%;min-height:64px;border-radius:8px;border:1px solid var(--line);background:var(--surface);text-align:left;padding:7px 9px;display:grid;gap:2px;font-size:12.5px;line-height:1.35}
+.cell b{font-size:12px}
+.cell.s-pri{background:var(--accent-soft);border-color:var(--accent)}
+.cell.s-ms{background:color-mix(in srgb,var(--p6) 18%,var(--surface));border-color:var(--p6)}
+.cell .n{color:var(--muted);font-variant-numeric:tabular-nums}
+.cell[aria-pressed="true"]{outline:2px solid var(--ink)}
+/* method + phases */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.card h3{margin:0;font-size:17px}
+.card .q{font-size:12px;color:var(--accent);letter-spacing:.06em;font-weight:700}
+.card p{margin:0;font-size:14.5px}
+.phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:820px){.phases{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.phases{grid-template-columns:1fr}}
+.phase{border-top:4px solid var(--accent);background:var(--surface);border-radius:0 0 12px 12px;padding:14px;display:grid;gap:6px;align-content:start;font-size:14px}
+.phase .when{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.phase h3{margin:0;font-size:16px}
+.phase .gate{font-size:13px;border-top:1px dashed var(--line);padding-top:6px;color:var(--muted)}
+.phase ul{margin:0;padding-left:18px;display:grid;gap:2px}
+.fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.sources{font-size:13px;color:var(--muted)}
+.sources a{color:var(--accent)}
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+@media (prefers-reduced-motion:reduce){svg .route{transition:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="topbar">
+    <div class="eyebrow"><span class="z">TNIS 中文（CSL）课程提案 · 课程设计 v0.2 · 2026-10-25</span><span class="e">TNIS Chinese (CSL) Proposal · Course Design v0.2 · 25 Oct 2026</span></div>
+    <div class="seg" role="group" aria-label="Language"><button data-lang="zh" aria-pressed="false">中文</button><button data-lang="en" aria-pressed="true">English</button></div>
+  </div>
+  <h1><span class="z">精品课程：一条中文路，从 G3 走到 AP</span><span class="e">Premium Offer: One Chinese pathway, from Grade 3 to AP</span></h1>
+  <p class="lede"><span class="z">ACTFL 能力等级是贯穿全程的主轴。课程不以考试为目标，但每一段的设计都对齐相应考试的水平（YCT、HSK、TOCFL、AP），学生想考就能考。越早开始，毕业时走得越高。</span><span class="e">ACTFL proficiency levels are the spine of the programme. The course does not teach to exams, but every stage is designed to align with the matching exam level (YCT, HSK, TOCFL, AP), so students who want a certificate are ready for it. The earlier a student starts, the higher they finish.</span></p>
+  <div class="facts">
+    <span class="fact"><span class="z">入口</span><span class="e">Entry points</span> <b>G3 · G6 · G9</b></span>
+    <span class="fact"><span class="z">主轴</span><span class="e">Spine</span> <b>ACTFL</b></span>
+    <span class="fact"><span class="z">现有课程</span><span class="e">Running now</span> <b>3</b></span>
+    <span class="fact"><span class="z">新增课程</span><span class="e">New courses</span> <b>2</b></span>
+  </div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#families"><i>1</i><span class="z">家庭与市场</span><span class="e">Families & market</span></a>
+    <a href="#map"><i>2</i><span class="z">路径地图</span><span class="e">Pathway map</span></a>
+    <a href="#crosswalk"><i>3</i><span class="z">ACTFL 与考试对照</span><span class="e">ACTFL & exams</span></a>
+    <a href="#today"><i>4</i><span class="z">今天的 TNIS 中文</span><span class="e">TNIS Chinese today</span></a>
+    <a href="#rollout"><i>5</i><span class="z">分阶段实施</span><span class="e">Rollout</span></a>
+  </nav>
+</header>
+
+<section id="families">
+  <h2><small><span class="z">01 · 为谁</span><span class="e">01 · For whom</span></small><span class="z">家庭与市场：河内还没有人提供的那一种中文</span><span class="e">Families & market: the kind of Chinese no one in Hanoi offers yet</span></h2>
+  <p class="intro"><span class="z">河内家长现在能选的，是 IB 学校的小学中文（UNIS）、美式学校从中学才开始的中文（St. Paul、Concordia），或者校外中文中心不连续的补习。在学校里、从小学到高中连续、每一段对齐考试水平、家长看得懂进步的中文，还没有人提供。</span><span class="e">Hanoi parents can currently choose primary Chinese at an IB school (UNIS), Chinese that starts only in middle school at American schools (St. Paul, Concordia), or disconnected tutoring at after-school language centres. Chinese that runs continuously inside school from primary to high school, with every stage aligned to exam levels and progress parents can read, is not on offer anywhere yet.</span></p>
+  <div class="fam" id="famCards"></div>
+</section>
+
+<section id="map">
+  <h2><small><span class="z">02 · 全貌</span><span class="e">02 · The whole picture</span></small><span class="z">K–12 路径地图</span><span class="e">K–12 pathway map</span></h2>
+  <p class="intro"><span class="z">横轴是年级，纵轴是 ACTFL 能力等级。三条线是从 G3、G6、G9 三个入口开始的学生预计走到的位置，空心圆是起点。底部色块是学段，红色的是现在已经在上的课。点线条或学段，右边会显示细节。</span><span class="e">Grades run across, ACTFL levels run up. The three lines show where students starting at G3, G6 and G9 are expected to reach; open circles mark the start. The blocks along the bottom are school stages; red ones are courses running today. Click a line or a stage to see the detail on the right.</span></p>
+  <div class="legend" id="routeLegend"></div>
+  <div class="mapgrid">
+    <div class="panel chartbox"><svg class="path" id="chart" viewBox="0 0 780 470" role="img" aria-label="K–12 pathway chart"></svg>
+      <p class="note"><span class="z">所有位置都是理想状况估算（每年约 30–34 周、出勤正常、有家庭练习），试点后用数据校准。和考试的对应见「ACTFL 与考试对照」。</span><span class="e">All positions are estimates under good conditions (30–34 weeks a year, regular attendance, home practice), to be recalibrated with pilot data. For how levels match exams, see "ACTFL & exams".</span></p>
+    </div>
+    <aside class="panel drawer" id="drawer" aria-live="polite"></aside>
+  </div>
+</section>
+
+
+
+<section id="crosswalk">
+  <h2><small><span class="z">03 · 对标</span><span class="e">03 · Alignment</span></small><span class="z">一条主轴，连接所有中文考试</span><span class="e">One spine, linked to every Chinese exam</span></h2>
+  <p class="intro"><span class="z">课程不包含考试，也不为考试而教。我们用 ACTFL 做主轴，因为它描述的是「能用中文做什么」；再把每个 ACTFL 等级对应到各个考试的水平。这样同一套课程设计可以同时对齐 YCT、HSK、TOCFL 和 AP，家庭需要哪一种证书，就知道孩子什么时候准备好了。TNIS 是 AP 学校，AP Chinese 本身也是按 ACTFL 设计的。</span><span class="e">Exams are not part of the course, and we do not teach to them. ACTFL is the spine because it describes what a student can do with Chinese; each ACTFL level is then matched to the level of each exam. One course design therefore aligns with YCT, HSK, TOCFL and AP at once, and families can see when their child is ready for whichever certificate they need. TNIS is an AP school, and AP Chinese is itself designed around ACTFL.</span></p>
+  <div class="panel tablewrap"><table class="cw" id="cwTable"></table></div>
+  <div class="callouts">
+    <div class="callout"><b><span class="z">台湾的大学（TOCFL）</span><span class="e">Universities in Taiwan (TOCFL)</span></b><span class="z">TOCFL 有官方 CEFR 对应：Level 2 = A2，Level 3 = B1。不少大学的中文授课学系以 A2 为门槛（例：国立联合大学「应达 A2（含）级以上」）；热门学系和奖学金通常看 B1。</span><span class="e">TOCFL maps officially to CEFR: Level 2 = A2, Level 3 = B1. Many Chinese-taught degree programmes set A2 as the minimum (e.g. National United University: "A2 or above"); competitive programmes and scholarships usually look for B1.</span></div>
+    <div class="callout"><b><span class="z">香港大学（HKU）</span><span class="e">The University of Hong Kong</span></b><span class="z">HKU 对持国际学历的申请人一般不要求中文（招生 FAQ：「Chinese is not a must for the admissions」），但部分专业会期望懂中文或粤语。对 TNIS 学生，中文是申请时的加分项，不是门槛。</span><span class="e">HKU generally does not require Chinese from applicants with international qualifications (admissions FAQ: "Chinese is not a must for the admissions"), though some programmes expect Chinese or Cantonese. For TNIS students, Chinese strengthens an application rather than gating it.</span></div>
+    <div class="callout"><b><span class="z">AP Chinese</span><span class="e">AP Chinese</span></b><span class="z">AP 课程的设计区间是 Intermediate 到 Pre-Advanced（参考 HKIS 的 AP Chinese：入学 Intermediate High，结业目标 Pre-Advanced）。G3 起步的学生到 G12 正好落在这个区间的上半段。</span><span class="e">AP courses are designed for the Intermediate to Pre-Advanced range (e.g. HKIS's AP Chinese: entry Intermediate High, end-of-course target Pre-Advanced). Students who start at G3 reach the upper half of that range by G12.</span></div>
+  </div>
+</section>
+
+<section id="today">
+  <h2><small><span class="z">04 · 放大</span><span class="e">04 · Zoom in</span></small><span class="z">今天的 TNIS 中文：三门课正在进行</span><span class="e">TNIS Chinese today: three courses running</span></h2>
+  <p class="intro"><span class="z">这一段不是计划，而是已经在发生的事。每门课都按单元走，红线是现在的位置（2026–27 学年第 11 周结束，第二学季第 1 周）。点一个单元看目标。</span><span class="e">This part is not a plan; it is already happening. Each course runs in units; the red line marks where we are now (end of Week 11 of 2026–27, first week of Quarter 2). Click a unit to see its goals.</span></p>
+  <div class="courses" id="courses"></div>
+</section>
+
+<section id="rollout">
+  <h2><small><span class="z">05 · 实施</span><span class="e">05 · Rollout</span></small><span class="z">先试点，用数据决定下一步</span><span class="e">Pilot first, let the data decide the next step</span></h2>
+  <div class="phases" id="phases"></div>
+</section>
+
+
+
+<div class="sources">
+  <b><span class="z">来源与说明</span><span class="e">Sources and notes</span></b><br>
+  <span class="z">HSK 3.0 词表与字表：新版 HSK 考试大纲（2025 年 11 月发布，2026 年 7 月执行），数据取自</span><span class="e">HSK 3.0 word and character lists: the new HSK exam syllabus (published Nov 2025, in force Jul 2026), via</span> <a href="https://pypi.org/project/hsk30/" target="_blank" rel="noopener">hsk30 (PyPI)</a> ·
+  <span class="z">HKU 招生 FAQ：</span><span class="e">HKU admissions FAQ:</span> <a href="https://admissions.hku.hk/node/1339" target="_blank" rel="noopener">admissions.hku.hk</a> ·
+  <span class="z">TOCFL A2 门槛示例：</span><span class="e">TOCFL A2 requirement example:</span> <a href="https://enroll.nuu.edu.tw/p/412-1065-735.php" target="_blank" rel="noopener">National United University</a> ·
+  <span class="z">AP Chinese 的 ACTFL 目标示例：</span><span class="e">AP Chinese ACTFL target example:</span> <a href="https://handbook.hkis.edu.hk/mandarin/ap-chinese-language-culture" target="_blank" rel="noopener">HKIS Course Handbook</a>.
+  <span class="z">ACTFL–CEFR、ACTFL–HSK 的对照都是近似值，用于沟通，不作官方换算。课时、词汇和等级位置是估算，试点后校准。</span><span class="e">ACTFL–CEFR and ACTFL–HSK correspondences are approximate and meant for communication, not official conversion. Hours, vocabulary and level positions are estimates to be recalibrated after the pilot.</span>
+</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const B=o=>`<span class="z">${o.zh}</span><span class="e">${o.en}</span>`;
+let lang="en";try{lang=localStorage.getItem("tnis-lang-v2")||"en"}catch(e){}
+function setLang(l){lang=l;setTimeout(()=>window.fitTitle&&fitTitle());document.body.classList.toggle("l-zh",l==="zh");document.body.classList.toggle("l-en",l==="en");document.documentElement.lang=l==="zh"?"zh-Hans":"en";document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.lang===l)));try{localStorage.setItem("tnis-lang-v2",l)}catch(e){}drawChart();if($("courses").children.length)renderCourses()}
+document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+
+const LV=[["NL","Novice Low"],["NM","Novice Mid"],["NH","Novice High"],["IL","Intermediate Low"],["IM","Intermediate Mid"],["IH","Intermediate High"],["AL","Advanced Low / Pre-Adv."]];
+const ROUTES=[
+ {id:"g3",color:"--p3",name:{zh:"G3 起步 · 10 年",en:"Start at G3 · 10 years"},pts:[[3,0],[5,1],[8,2],[10,3.5],[12,5]],
+  info:{zh:"G3 从小学课后班起步，初中、高中连续学，约 750 小时。G5 结束约 Novice Mid，G8 结束约 Novice High，G12 结束约 Intermediate High：能讨论、说服，读文章，写议论短文。",en:"Starts in the G3 after-school class and continues through middle and high school, about 750 hours. About Novice Mid by the end of G5, Novice High by the end of G8 and Intermediate High by the end of G12: discusses and persuades, reads articles, writes short argument essays."}},
+ {id:"g6",color:"--p6",name:{zh:"G6 起步 · 7 年",en:"Start at G6 · 7 years"},pts:[[6,0],[8,1.3],[10,2.7],[12,4]],
+  info:{zh:"G6 从初中 Mandarin Exploration 起步，约 600 小时。G8 结束约 Novice Mid 到 High，G12 结束约 Intermediate Mid：能就熟悉和部分社会话题对话、读短文章、写短文。",en:"Starts in G6 Mandarin Exploration, about 600 hours. About Novice Mid to High by the end of G8 and Intermediate Mid by the end of G12: holds conversations on familiar and some social topics, reads short articles, writes short essays."}},
+ {id:"g9",color:"--p9",name:{zh:"G9 起步 · 2–4 年",en:"Start at G9 · 2–4 years"},pts:[[9,0],[9,1],[10,3],[12,4]],
+  info:{zh:"G9 从 Mandarin I 零起点。Mandarin I 结束约 Novice Mid；学 2 年（约 225 小时，Mandarin I → II）到 Intermediate Low，获得外语学分；学满 4 年（约 450 小时，再学 Mandarin III → AP Chinese）到 Intermediate Mid 左右。",en:"Zero-start in G9 Mandarin I. About Novice Mid at the end of Mandarin I; two years (about 225 hours, Mandarin I → II) reaches Intermediate Low and the world-language credit; four years (about 450 hours, then Mandarin III → AP Chinese) reaches around Intermediate Mid."}}];
+const NODES=[];
+const STAGES=[
+ {id:"g12",g:[1,2],st:"p2",name:{zh:"G1–2",en:"G1–2"},title:{zh:"G1–2 · 兴趣课（第二阶段）",en:"G1–2 · Taster class (phase 2)"},
+  kv:[[{zh:"形式",en:"Format"},{zh:"课后兴趣课，每周 1 节",en:"After-school taster, 1 period a week"}],[{zh:"内容",en:"Content"},{zh:"儿歌、游戏、最基础的词汇；不用课本",en:"Songs, games and the most basic vocabulary; no textbook"}],[{zh:"学段末",en:"By the end"},{zh:"听懂课堂指令；问候、数字、颜色、家人",en:"Understands classroom instructions; greetings, numbers, colours, family"}],[{zh:"ACTFL",en:"ACTFL"},{zh:"Novice Low",en:"Novice Low"}]]},
+ {id:"pri",g:[3,5],st:"plan",name:{zh:"G3–5 小学",en:"G3–5 Primary"},title:{zh:"G3–5 · 小学 CSL",en:"G3–5 · Primary CSL"},
+  kv:[[{zh:"形式",en:"Format"},{zh:"第一阶段课后收费班；第二阶段争取进课表",en:"Phase 1 paid after-school class; phase 2 aims for the timetable"}],[{zh:"课时",en:"Hours"},{zh:"每周 2 节（保底 1 节）+ 家庭练习，约 50 小时 / 年",en:"2 periods a week (minimum 1) + home practice, about 50 hours a year"}],[{zh:"课程内容",en:"Content"},{zh:"TNIS 专属设计的定制内容，每年一级，词汇和要求对齐 YCT；学得快的学生有延伸任务",en:"Custom content designed for TNIS, one level a year, with vocabulary and goals aligned to YCT; extension tasks for faster students"}],[{zh:"学段末 Can-Do",en:"Exit Can-Do"},{zh:"介绍自己、家人、学校和喜好；就熟悉话题简短问答；认读常用汉字。约 200 词",en:"Introduces self, family, school and likes; short Q&A on familiar topics; reads common characters. About 200 words"}],[{zh:"ACTFL",en:"ACTFL"},{zh:"Novice Mid",en:"Novice Mid"}]]},
+ {id:"ms",g:[6,8],st:"now",name:{zh:"G6–8 初中",en:"G6–8 Middle"},title:{zh:"G6–8 · 初中 Mandarin Exploration",en:"G6–8 · Middle-school Mandarin Exploration"},course:"me",
+  kv:[[{zh:"现状",en:"Today"},{zh:"<b>正在上课</b>：G6、G7、G8 同步，每周 2 × 45 分钟",en:"<b>Running now</b>: G6, G7 and G8 in sync, 2 × 45 minutes a week"}],[{zh:"改造方向",en:"Next"},{zh:"小学 CSL 开设后，分「继续学 / 零起点」两组；使用专属设计的定制内容",en:"Once primary CSL exists, split into continuing / zero-start groups, using custom-designed content"}],[{zh:"学段末 Can-Do",en:"Exit Can-Do"},{zh:"谈日常生活、学校、兴趣、购物、交通；写一小段自我介绍；做简单展示",en:"Talks about daily life, school, hobbies, shopping and transport; writes a short self-introduction; gives a simple presentation"}],[{zh:"ACTFL",en:"ACTFL"},{zh:"零起点 Novice Mid · 继续学 Novice High",en:"Zero-start Novice Mid · Continuing Novice High"}]]},
+ {id:"hs1",g:[9,10],st:"now",name:{zh:"G9–10 高中",en:"G9–10 High"},title:{zh:"G9–10 · Mandarin I / II / 1.5",en:"G9–10 · Mandarin I / II / 1.5"},course:"m1",
+  kv:[[{zh:"现状",en:"Today"},{zh:"<b>正在上课</b>：Mandarin I（G9、G10 零起点）和 Mandarin 1.5（G10 第二年），每周 5 × 45 分钟",en:"<b>Running now</b>: Mandarin I (G9 and G10 beginners) and Mandarin 1.5 (G10, second year), 5 × 45 minutes a week"}],[{zh:"课时",en:"Hours"},{zh:"约 113 小时 / 年，World Language 学分",en:"About 113 hours a year, world-language credit"}],[{zh:"学段末 Can-Do",en:"Exit Can-Do"},{zh:"讨论学校和社会话题；读短文章；写一篇短文；PBL 研究展示",en:"Discusses school and social topics; reads short articles; writes a short essay; gives a PBL research presentation"}],[{zh:"ACTFL",en:"ACTFL"},{zh:"Mandarin I 结束 Novice Mid · Mandarin II 结束 Intermediate Low",en:"End of Mandarin I Novice Mid · End of Mandarin II Intermediate Low"}]]},
+ {id:"hs2",g:[11,12],st:"plan",name:{zh:"G11–12",en:"G11–12"},title:{zh:"G11–12 · Mandarin III → AP Chinese",en:"G11–12 · Mandarin III → AP Chinese"},
+  kv:[[{zh:"形式",en:"Format"},{zh:"课表内，按级别开班；新开 Mandarin III 和 AP Chinese",en:"In the timetable, grouped by level; Mandarin III and AP Chinese are new"}],[{zh:"课程内容",en:"Content"},{zh:"专属设计的定制内容 + AP 三种任务模式训练",en:"Custom-designed content + training in the three AP task modes"}],[{zh:"学段末 Can-Do",en:"Exit Can-Do"},{zh:"讨论、说服、比较文化；读文章；写议论短文；完成 AP 的人际、理解、表达三种任务",en:"Discusses, persuades and compares cultures; reads articles; writes short argument essays; completes AP interpersonal, interpretive and presentational tasks"}],[{zh:"ACTFL",en:"ACTFL"},{zh:"G9 起步约 Intermediate Mid · G3 起步约 Intermediate High",en:"G9 starters about Intermediate Mid · G3 starters about Intermediate High"}],[{zh:"第一批",en:"First cohort"},{zh:"现在的 Mandarin 1.5 学生如果继续：2027–28 学 Mandarin III，2028–29 学 AP Chinese（待评估）",en:"If today's Mandarin 1.5 students continue: Mandarin III in 2027–28, AP Chinese in 2028–29 (to be assessed)"}]]}];
+
+// ---- current courses (as of end of Week 11, 2026–27) ----
+const NOW=11.5;
+const COURSES=[
+ {id:"m1",name:{zh:"Mandarin I 中文一",en:"Mandarin I"},meta:{zh:"G9（两个班）+ G10 零起点 · 每周 5 × 45 分钟 · 30 周",en:"G9 (two sections) + G10 beginners · 5 × 45 min a week · 30 weeks"},
+  units:[["B1",{zh:"摸底与感受",en:"Diagnose & sounds"},1,8,{zh:"完整拼音系统（声调、拼读），约 15 个字认形；每个学生写下一年目标。",en:"Full pinyin system with tones; about 15 characters recognised by shape; each student sets a year goal."}],["B2",{zh:"认识你",en:"Self, family & numbers"},9,13,{zh:"介绍自己和别人（名字、年龄、国籍、家人、数字 0–100）；开始正式写汉字。",en:"Introduces self and others (name, age, nationality, family, numbers 0–100); formal character writing begins."}],["B3",{zh:"教室与校园",en:"Classroom & school"},14,17,{zh:"教室物品和颜色；听懂、给出简单课堂指令；第一学期约 50 个书写字。",en:"Classroom objects and colours; follows and gives simple classroom instructions; about 50 written characters by end of term 1."}],["B4",{zh:"我的一天",en:"Food & routine"},18,22,{zh:"按时间顺序讲一天；表达饮食喜好；累计约 270 词。",en:"Narrates a day in time order; food preferences; about 270 words cumulative."}],["B5",{zh:"购物与爱好",en:"Shopping & hobbies"},23,26,{zh:"购物比较和讨价还价；谈爱好；累计约 350 词、150 字。",en:"Compares and bargains when shopping; talks about hobbies; about 350 words and 150 characters cumulative."}],["B6",{zh:"年度展示",en:"Showcase"},27,30,{zh:"5 分钟无提示自我介绍；作品集；猜新字迁移测试。",en:"5-minute unprompted self-introduction; portfolio; transfer test on unseen characters."}]],
+  cur:"B2",
+  status:{zh:"第 12 周完成 B2（「三人访谈秀」项目作为总结性评估），第 13 周进入 B3。比原计划慢约 3 周，这是刻意的：第一学期先打牢基础和信心，第二学期加快。",en:"B2 wraps up in Week 12 with the Trio Interview Show project as a summative; B3 starts in Week 13. About 3 weeks behind the original plan, by design: term 1 builds foundation and confidence, term 2 speeds up."},
+  stats:[[{zh:"第 9 周期中平均分",en:"Week 9 mid-term average"},{zh:"G10 97.5 · G9 A 组 97.25 · G9 B 组 89",en:"G10 97.5 · G9 group A 97.25 · G9 group B 89"}],[{zh:"最常见错误",en:"Most common error"},{zh:"听写名字拼音时受英语拼写影响（lee、may、shao）",en:"English spelling habits in pinyin dictation of names (lee, may, shao)"}],[{zh:"本学季评估",en:"This quarter"},{zh:"6 个学习周内 5 次形成性 + 3 次总结性",en:"5 formative + 3 summative assessments in 6 study weeks"}],[{zh:"年末目标",en:"Year-end target"},{zh:"约 350 词、150 字 · ACTFL Novice Mid · 进阶量尺 带 2–3",en:"About 350 words, 150 characters · ACTFL Novice Mid · bands 2–3"}]]},
+ {id:"m15",name:{zh:"Mandarin 1.5 中文一点五",en:"Mandarin 1.5"},meta:{zh:"G10 第二年学生 · 每周 5 × 45 分钟 · 原为 Mandarin II，第 6 周起转入衔接路线",en:"G10 second-year students · 5 × 45 min a week · started as Mandarin II, moved to the bridge pathway from Week 6"},
+  units:[["MII-1",{zh:"开学单元与衔接",en:"Opening unit & bridge"},1,5,{zh:"按 Mandarin II 开学：诊断暑假后保留了什么、人物描写、设定一年目标。第 5 周写作评估后，决定转入 Mandarin 1.5 衔接路线。",en:"Opened as Mandarin II: diagnosed what survived the summer, described people, set year goals. After the Week 5 writing assessment the class moved to the Mandarin 1.5 bridge pathway."}],["C2",{zh:"校园生活与情绪",en:"School life & feelings"},6,9,{zh:"谈科目和课表，表达情绪和理由；累计约 250 词。",en:"Talks about subjects and timetables, feelings and reasons; about 250 words cumulative."}],["C3",{zh:"社区、购物与观点",en:"Community, shopping & opinions"},10,17,{zh:"在社区里找地方、购物、简单说观点；写 5–8 句描述；累计约 300 词、180 字。",en:"Finds places in the community, shops, gives simple opinions; writes a 5–8 sentence description; about 300 words and 180 characters."}],["C4",{zh:"文化与节日",en:"Culture & festivals"},18,22,{zh:"介绍两个节日的食物、习俗和价值；用 了 / 过 讲经历。",en:"Describes two festivals' food, customs and values; narrates experiences with 了 / 过."}],["C5",{zh:"观点、经历与未来",en:"Opinions & future"},23,26,{zh:"表达并说明观点；谈未来计划；旅行预订谈判。累计约 480 词。",en:"States and defends opinions; future plans; negotiates a travel booking. About 480 words cumulative."}],["C6",{zh:"班级新闻台",en:"Class newsroom"},27,30,{zh:"采访同学、写 3–5 句新闻、现场播报并回答问题。",en:"Interviews classmates, writes a 3–5 sentence news story, broadcasts and answers questions."}]],
+  cur:"C3",
+  status:{zh:"正在 C3：第 11 周写作「星期六我去哪儿」（社区地点 + 先……再……然后），第 12 周用「地图信息差」练问路。基本按计划进行。",en:"In C3: Week 11 writing task 'Where do I go on Saturday?' (places in the community + 先……再……然后), Week 12 practises directions with a map information-gap task. Broadly on plan."},
+  stats:[[{zh:"第 9 周期中平均分",en:"Week 9 mid-term average"},{zh:"94.4",en:"94.4"}],[{zh:"观察到的难点",en:"Observed difficulty"},{zh:"听录音答题偏难（老师放慢朗读后能应付）；3 人误用「又……又……」",en:"Listening to recordings is hard (manageable when the teacher reads slowly); 3 students misused 又……又……"}],[{zh:"本学季评估",en:"This quarter"},{zh:"6 个学习周内 5 次形成性 + 3 次总结性",en:"5 formative + 3 summative assessments in 6 study weeks"}],[{zh:"年末目标",en:"Year-end target"},{zh:"约 480–550 词、320 字 · Novice High → Intermediate Low · 带 3–4",en:"About 480–550 words, 320 characters · Novice High → Intermediate Low · bands 3–4"}]]},
+ {id:"me",name:{zh:"Mandarin Exploration 中文探索",en:"Mandarin Exploration"},meta:{zh:"G6、G7、G8 · 每周 2 × 45 分钟 · 30 周 · 不以考试为导向",en:"G6, G7, G8 · 2 × 45 min a week · 30 weeks · not exam-driven"},
+  units:[["A1",{zh:"你好，中文！",en:"Hello, Chinese!"},1,5,{zh:"分辨四个声调、读出没见过的拼音；认 10–15 个字形；基本问候。",en:"Hears the four tones and reads unseen pinyin; recognises 10–15 character shapes; basic greetings."}],["A2",{zh:"这是我",en:"This is me"},6,11,{zh:"用 3–5 句介绍自己（名字、年龄、家人、喜好）；问答 什么 / 谁 / 几；开始写字。",en:"Self-introduction in 3–5 sentences (name, age, family, a preference); asks 什么 / 谁 / 几; starts writing characters."}],["A3",{zh:"我的一天",en:"My day"},12,17,{zh:"说时间、讲作息；问 几点；比较这里和中文地区的上学日。",en:"Tells the time and describes a routine; asks 几点; compares school days here and in a Chinese-speaking place."}],["A4",{zh:"好吃！",en:"Food & festivals"},18,25,{zh:"点餐、问价钱、简单购物；介绍一个节日食物。",en:"Orders food, asks prices, simple shopping; describes a festival food."}],["A5",{zh:"我的世界",en:"My little world"},26,30,{zh:"作品集展示；第 1 周和第 30 周的录音对比。",en:"Portfolio showcase; compares Week 1 and Week 30 voice recordings."}]],
+  cur:"A2",
+  status:{zh:"三个年级第 11 周完成 A2，第 12 周一起进入 A3。第二学季开始用翻转课堂：课前 Quizlet，课上游戏和口语练习；每节课固定练课堂用语。A3 之后的单元周次按现在的进度估算。",en:"All three grades finish A2 in Week 11 and start A3 together in Week 12. From Quarter 2 the class is flipped: Quizlet before class, games and speaking in class, plus a fixed classroom-phrase routine every lesson. Weeks for the units after A3 are estimated from the current pace."},
+  stats:[[{zh:"每周课时",en:"Weekly time"},{zh:"只有 2 节，所以课前练习很重要",en:"Only 2 periods, so pre-class practice matters"}],[{zh:"本学季评估",en:"This quarter"},{zh:"3 次形成性 + 2 次总结性；下一次总结性是第 13 周的「猜猜猜」",en:"3 formative + 2 summative; next summative is the Week 13 guessing game"}],[{zh:"差异化",en:"Differentiation"},{zh:"三个年级进度一致；G6 注意力较弱，但保持同一进度，任务分层",en:"Three grades at one pace; G6 has shorter attention but stays at the same pace with tiered tasks"}],[{zh:"年末目标",en:"Year-end target"},{zh:"约 150 个核心词 + 个人词库 · ACTFL Novice Low–Mid · 带 2–3",en:"About 150 core words + a personal word bank · ACTFL Novice Low–Mid · bands 2–3"}]]}];
+
+const CW=[
+ ["NL",{zh:"—",en:"—"},{zh:"—",en:"—"},{zh:"—",en:"—"},{zh:"入门（Novice 1）",en:"Novice 1"},{zh:"起点",en:"Starting point"}],
+ ["NM",{zh:"A1 前段",en:"Early A1"},{zh:"YCT 1–2",en:"YCT 1–2"},{zh:"一级",en:"Level 1"},{zh:"Novice 2",en:"Novice 2"},{zh:"G5 小学结束（约 200 词）；Mandarin I 年末（约 350 词）",en:"End of G5 primary (about 200 words); end of Mandarin I (about 350 words)"}],
+ ["NH",{zh:"A1",en:"A1"},{zh:"YCT 3–4",en:"YCT 3–4"},{zh:"一至二级",en:"Level 1–2"},{zh:"Level 1（A1）",en:"Level 1 (A1)"},{zh:"G8 初中结束（继续学，约 650 词）；Mandarin 1.5 年末（约 480–550 词）",en:"End of G8 (continuing, about 650 words); end of Mandarin 1.5 (about 480–550 words)"}],
+ ["IL",{zh:"A2",en:"A2"},{zh:"—",en:"—"},{zh:"二级",en:"Level 2"},{zh:"Level 2（A2）· 台湾中文授课学系常见门槛",en:"Level 2 (A2) · common minimum for Chinese-taught degrees in Taiwan"},{zh:"Mandarin II 年末（约 800 词）",en:"End of Mandarin II (about 800 words)"}],
+ ["IM",{zh:"A2+",en:"A2+"},{zh:"—",en:"—"},{zh:"三级",en:"Level 3"},{zh:"Level 2–3",en:"Level 2–3"},{zh:"G12（G9、G6 起步，约 1,000–1,300 词）；AP 课程区间",en:"G12 for G9 and G6 starters (about 1,000–1,300 words); within the AP range"}],
+ ["IH",{zh:"B1",en:"B1"},{zh:"—",en:"—"},{zh:"四级",en:"Level 4"},{zh:"Level 3（B1）· 热门学系、奖学金",en:"Level 3 (B1) · competitive programmes and scholarships"},{zh:"G12（G3 起步，约 1,600–2,000 词）",en:"G12 for G3 starters (about 1,600–2,000 words)"}],
+ ["AL",{zh:"B2",en:"B2"},{zh:"—",en:"—"},{zh:"五级",en:"Level 5"},{zh:"Level 4（B2）",en:"Level 4 (B2)"},{zh:"AP 课程目标上限（Pre-Advanced）",en:"Upper AP target (Pre-Advanced)"}]];
+
+
+const PHASES=[
+ [{zh:"阶段 0 · 准备",en:"Phase 0 · Prepare"},"2026-11 → 2027-06",[{zh:"12 月起用这张路径图做招生宣传",en:"Use this pathway map in admissions from December"},{zh:"按国籍做家长问卷：意向、价格、课时",en:"Parent survey by nationality: interest, price, hours"}],{zh:"条件：G3–5 有意向 ≥ 8–10 人",en:"Gate: ≥ 8–10 interested G3–5 students"}],
+ [{zh:"阶段 1 · 试点",en:"Phase 1 · Pilot"},"2027-08 → 2028-06",[{zh:"G3–5 课后班 1–2 个，每周 2 节",en:"1–2 G3–5 after-school classes, 2 periods a week"},{zh:"Mandarin Exploration 改造",en:"Redesign Mandarin Exploration"},{zh:"开 Mandarin III",en:"Open Mandarin III"},{zh:"每学期 Can-Do 家长报告",en:"Can-Do parent report every term"}],{zh:"条件：每学期报班满 8 人就开班；≥ 70% 达到 Can-Do",en:"Gate: a class runs each term once 8 students enrol; ≥ 70% meet Can-Do targets"}],
+ [{zh:"阶段 2 · 扩大",en:"Phase 2 · Expand"},"2028-08 →",[{zh:"用数据决定小学是否进课表",en:"Decide with data whether primary joins the timetable"},{zh:"开 G1–2 兴趣课",en:"Open G1–2 taster classes"},{zh:"第一批 AP Chinese",en:"First AP Chinese cohort"},{zh:"招第二位中文老师",en:"Hire a second Chinese teacher"}],{zh:"条件：总课时超过一位老师的负担时招人",en:"Gate: hire when total periods exceed one teacher's load"}],
+ [{zh:"阶段 3 · 完整 K–12",en:"Phase 3 · Full K–12"},"2029 →",[{zh:"第一批 G3 学生升入 G6，验证衔接",en:"First G3 cohort reaches G6; test the hand-over"},{zh:"假期 HSK 冲刺营",en:"Holiday HSK intensive camps"},{zh:"高年级融入 IB 式思辨教法",en:"Bring IB-style critical discussion into upper grades"}],{zh:"—",en:"—"}]];
+
+const FAMS=[
+ [{zh:"越南家庭",en:"Vietnamese families"},{zh:"第一优先",en:"Priority 1"},{zh:"中文是最有用的第二外语：就业、升学、中越经贸。卖点：从小学到高中一条不断的路，每个阶段学完能做什么都说得清楚。",en:"Chinese as the most useful second foreign language: jobs, study, Vietnam–China trade. Pitch: one unbroken path from primary to high school, with a clear statement of what students can do at the end of each stage."}],
+ [{zh:"韩国家庭",en:"Korean families"},{zh:"第二优先",en:"Priority 2"},{zh:"三语（韩、英、中）；为英美或亚洲大学做准备。汉字词多，学得快。",en:"Three languages (Korean, English, Chinese); preparing for UK/US or Asian universities. Many Sino-Korean words make progress fast."}],
+ [{zh:"日本、印度等家庭",en:"Japanese, Indian and others"},{zh:"第三优先 · 待访谈",en:"Priority 3 · to be interviewed"},{zh:"日本：有汉字基础，会中文的日本人越来越稀缺；印度：在河内能系统学中文，在印度很难。",en:"Japanese: kanji head start, and Chinese-speaking Japanese are increasingly rare; Indian: systematic Chinese is available in Hanoi but hard to find at home."}],
+ [{zh:"竞品空位",en:"The gap"},{zh:"市场",en:"Market"},{zh:"St. Paul、Concordia 的中文从中学开始；UNIS 小学有中文但走 IB。「美式学校 + 从小学开始的系统中文 + AP 出口」在河内可能是空位。",en:"St. Paul and Concordia start Chinese in middle school; UNIS has primary Chinese but is IB. 'American school + systematic Chinese from primary + AP exit' may be an open space in Hanoi."}]];
+
+// ---- chart ----
+const X0=72,XW=56,Y0=372,YH=46;
+const gx=g=>X0+(g-1)*XW+XW/2, ly=l=>Y0-l*YH;
+let selStage="ms",selRoute=null,selNode=null;
+function cssv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function drawChart(){
+  const s=$("chart");let h="";
+  // AP zone + reference lines
+  for(let i=0;i<LV.length;i++){h+=`<line class="grid" x1="${X0}" x2="${X0+XW*12}" y1="${ly(i)}" y2="${ly(i)}"/><text class="lvl" x="${X0-8}" y="${ly(i)+4}" text-anchor="end">${LV[i][0]}</text>`}
+  for(let g=1;g<=12;g++){h+=`<text x="${gx(g)}" y="${Y0+24}" text-anchor="middle">G${g}</text>`}
+  // routes
+  // first point = start of the entry grade (drawn on that grade's column); later points = end of the given grade
+  const px=(p,i)=>i===0?gx(p[0]):gx(p[0])+XW/2;
+  ROUTES.forEach(r=>{const d=r.pts.map((p,i)=>`${i?"L":"M"}${px(p,i)},${ly(p[1])}`).join(" ");
+    const dim=selRoute&&selRoute!==r.id?" dim":"";
+    h+=`<path class="route${dim}" data-r="${r.id}" d="${d}" stroke="${cssv(r.color)}"><title>${r.name[lang]}</title></path>`;
+    const s0=r.pts[0];h+=`<circle cx="${gx(s0[0])}" cy="${ly(s0[1])}" r="6" fill="var(--surface)" stroke="${cssv(r.color)}" stroke-width="3" class="route${dim}" data-r="${r.id}"/>`;
+    const e=r.pts[r.pts.length-1];h+=`<circle cx="${px(e,1)}" cy="${ly(e[1])}" r="5" fill="${cssv(r.color)}" class="route${dim}" data-r="${r.id}"/>`});
+  // nodes
+  NODES.forEach(n=>{h+=`<g class="node${selNode===n.id?" sel":""}" data-n="${n.id}" tabindex="0" role="button" aria-label="${n.lab}"><circle cx="${gx(n.x)}" cy="${ly(n.y)}" r="9"/><text x="${gx(n.x)}" y="${ly(n.y)-14}" text-anchor="middle">${n.lab}</text></g>`});
+  // stage bands
+  STAGES.forEach(st=>{const x=gx(st.g[0])-XW/2+2,w=(st.g[1]-st.g[0]+1)*XW-4;
+    h+=`<g class="band${st.st==="now"?" now":""}${selStage===st.id?" sel":""}" data-s="${st.id}" tabindex="0" role="button" aria-label="${st.name[lang]}"><rect x="${x}" y="${Y0+36}" width="${w}" height="40" rx="7"/><text x="${x+w/2}" y="${Y0+55}" text-anchor="middle">${st.name[lang]}</text><text x="${x+w/2}" y="${Y0+70}" text-anchor="middle" style="font-size:10.5px;fill:${st.st==="now"?"var(--now)":"var(--muted)"}">${st.st==="now"?(lang==="zh"?"正在上课":"running now"):st.st==="p2"?(lang==="zh"?"第二阶段":"phase 2"):(lang==="zh"?"计划":"planned")}</text></g>`});
+  s.setAttribute("viewBox",`0 70 ${X0+XW*12+16} ${Y0+84-70}`);
+  s.innerHTML=h;
+  s.querySelectorAll("[data-s]").forEach(g=>{const f=()=>{selStage=g.dataset.s;selNode=null;drawChart();showStage()};g.onclick=f;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}}});
+  s.querySelectorAll("[data-n]").forEach(g=>{const f=()=>{selNode=g.dataset.n;selStage=null;drawChart();showNode()};g.onclick=f;g.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();f()}}});
+  s.querySelectorAll("[data-r]").forEach(p=>p.onclick=()=>toggleRoute(p.dataset.r));
+  renderLegend();
+}
+function renderLegend(){
+  $("routeLegend").innerHTML=ROUTES.map(r=>`<button data-rl="${r.id}" aria-pressed="${selRoute===r.id}"><i style="background:var(${r.color})"></i>${B(r.name)}</button>`).join("");
+  document.querySelectorAll("[data-rl]").forEach(b=>b.onclick=()=>toggleRoute(b.dataset.rl));
+}
+function toggleRoute(id){selRoute=selRoute===id?null:id;drawChart();if(selRoute){const r=ROUTES.find(x=>x.id===id);$("drawer").innerHTML=`<span class="tag plan">${B({zh:"入口路线",en:"Entry route"})}</span><h3>${B(r.name)}</h3><p style="margin:0">${B(r.info)}</p><p class="note">${B({zh:"再点一次取消高亮。",en:"Click again to clear the highlight."})}</p>`}else showStage()}
+function showStage(){
+  const st=STAGES.find(x=>x.id===(selStage||"ms"));
+  const tag=st.st==="now"?`<span class="tag now">${B({zh:"正在上课",en:"Running now"})}</span>`:st.st==="p2"?`<span class="tag p2">${B({zh:"第二阶段",en:"Phase 2"})}</span>`:`<span class="tag plan">${B({zh:"计划",en:"Planned"})}</span>`;
+  $("drawer").innerHTML=`<div>${tag}</div><h3>${B(st.title)}</h3><dl class="kv">${st.kv.map(([k,v])=>`<dt>${B(k)}</dt><dd>${B(v)}</dd>`).join("")}</dl>${st.course?`<div><button class="linkbtn" id="goCourse">${B({zh:"看现在的单元和进度 ↓",en:"See current units and progress ↓"})}</button></div>`:""}`;
+  if(st.course)$("goCourse").onclick=()=>{const el=$("c-"+st.course);if(el)el.scrollIntoView({behavior:"smooth",block:"start"})};
+}
+function showNode(){const n=NODES.find(x=>x.id===selNode);$("drawer").innerHTML=`<span class="tag" style="background:var(--gold-soft);color:var(--gold)">${B({zh:"对齐的考试水平",en:"Aligned exam level"})}</span><p style="margin:0">${B(n.info)}</p><p class="note">${B({zh:"课程本身不包含考试。这里说明的是：学到这一阶段，学生的水平对应这一级考试，家庭可以自行选择报考。课程目标始终是 ACTFL Can-Do。",en:"Exams are not part of the course. This shows that at this stage a student's level matches this exam, and families can choose to sit it. The course goal is always the ACTFL Can-Do."})}</p>`}
+
+// ---- courses ----
+function renderCourses(){
+  $("courses").innerHTML=COURSES.map(c=>{
+    const tl=c.units.map(u=>{const st=u[3]<NOW?"done":(u[2]<=NOW+1&&u[0]===c.cur)?"cur":"";const w=u[3]-u[2]+1;
+      return `<button class="unit ${st}" style="flex-grow:${w}" data-c="${c.id}" data-u="${u[0]}"><b>${u[0]} ${B(u[1])}</b><span>W${u[2]}–${u[3]}</span></button>`}).join("");
+    const pct=(NOW-0.5)/30*100;
+    return `<article class="panel course" id="c-${c.id}">
+      <div class="chead"><h3>${B(c.name)}</h3><span class="meta">${B(c.meta)}</span></div>
+      <div class="tlscroll"><div class="timeline">${tl}<div class="marker" style="left:calc(${pct}% )" data-l="${lang==="zh"?"现在 · 第 11 周":"Now · Week 11"}"></div></div></div>
+      <div class="unitbox" id="ub-${c.id}"></div>
+      <div class="cgrid">${c.stats.map(([k,v])=>`<div class="stat"><span class="k">${B(k)}</span><span class="v">${B(v)}</span></div>`).join("")}</div>
+    </article>`}).join("");
+  COURSES.forEach(c=>showUnit(c.id,c.cur));
+  document.querySelectorAll(".unit").forEach(b=>b.onclick=()=>showUnit(b.dataset.c,b.dataset.u));
+}
+function showUnit(cid,uid){const c=COURSES.find(x=>x.id===cid),u=c.units.find(x=>x[0]===uid);
+  $("ub-"+cid).innerHTML=`<b>${u[0]} · ${B(u[1])} <span class="note">W${u[2]}–${u[3]}</span></b><span>${B(u[4])}</span>`;
+  document.querySelectorAll(`.unit[data-c="${cid}"]`).forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.u===uid)))}
+
+// ---- crosswalk ----
+function renderCW(){
+  const hd=[{zh:"ACTFL",en:"ACTFL"},{zh:"CEFR（近似）",en:"CEFR (approx.)"},{zh:"YCT",en:"YCT"},{zh:"HSK 3.0（估算）",en:"HSK 3.0 (est.)"},{zh:"TOCFL",en:"TOCFL"},{zh:"TNIS 学生在哪里",en:"Where TNIS students are"}];
+  $("cwTable").innerHTML=`<thead><tr>${hd.map(x=>`<th>${B(x)}</th>`).join("")}</tr></thead><tbody>`+CW.map((r,i)=>{const m=r[0]==="IL"||r[0]==="IH";return `<tr${m?' class="hl"':""}><td class="lv">${LV[i][1]}</td>${r.slice(1).map((x,j)=>`<td>${B(x)}</td>`).join("")}</tr>`}).join("")+"</tbody>";
+}
+// ---- topic map ----
+const MAP=[{"zh": "个人与社交", "en": "Me & Friends", "c": [{"n": 35, "h": 33, "zh": "能说出问候语、数字和自己的中文名字", "en": "I can say greetings, numbers and my Chinese name.", "ex": "你好、再见、谢谢、我、你、他／她"}, {"n": 16, "h": 16, "zh": "能问答姓名、年龄和国籍", "en": "I can ask and answer about name, age and nationality.", "ex": "叫、什么、几、岁、哪、国"}, {"n": 12, "h": 12, "zh": "能用 3–5 句话介绍自己或朋友", "en": "I can introduce myself or a friend in 3–5 sentences.", "ex": "朋友、喜欢、也、很、高兴、认识"}]}, {"zh": "家庭与住房", "en": "Family & Home", "c": [{"n": 20, "h": 17, "zh": "能说出家人称呼和房间名称", "en": "I can name family members and rooms in a house.", "ex": "家、爸爸、妈妈、哥哥、姐姐、弟弟"}, {"n": 25, "h": 25, "zh": "能交流家里有几口人、家人在哪个房间", "en": "I can talk about how many people are in my family and where they are.", "ex": "有、没有、口、在、哪儿、谁"}, {"n": 13, "h": 9, "zh": "能简单描述自己的家或家人的样子", "en": "I can describe my home or what my family members look like.", "ex": "大、小、高、矮、头发、长"}]}, {"zh": "时间与日常", "en": "Time & Daily Routine", "c": [{"n": 26, "h": 25, "zh": "能认读时间（几点几分）、星期和日期", "en": "I can read the time (hours and minutes), days and dates.", "ex": "点、分、今天、明天、昨天、星期一"}, {"n": 16, "h": 14, "zh": "能问几点了，说出某个时间在做什么", "en": "I can ask the time and say what I do at a certain time.", "ex": "现在、几点、起床、吃饭、上学、睡觉"}, {"n": 8, "h": 4, "zh": "能按顺序说出自己一天的作息", "en": "I can describe my day in order.", "ex": "先、然后、以后、每天、中午、下午"}]}, {"zh": "学校与学习", "en": "School & Learning", "c": [{"n": 21, "h": 15, "zh": "能说出学校设施、科目和文具", "en": "I can name school places, subjects and stationery.", "ex": "学校、教室、老师、同学、书、笔"}, {"n": 21, "h": 20, "zh": "能说喜欢哪门课，听懂老师的基本指令", "en": "I can say which subjects I like and understand basic classroom instructions.", "ex": "喜欢、不喜欢、课、请、听、说"}, {"n": 7, "h": 2, "zh": "能简单介绍自己的学校生活", "en": "I can talk about my school life, including how I get to school.", "ex": "坐、校车、走路、最、有意思、因为……所以……"}]}, {"zh": "饮食与用餐", "en": "Food & Meals", "c": [{"n": 17, "h": 14, "zh": "能说出常见水果、蔬菜、饮料和饭菜", "en": "I can name common fruits, vegetables, drinks and dishes.", "ex": "水、牛奶、果汁、米饭、面条、鸡蛋"}, {"n": 16, "h": 14, "zh": "能用“要/想”点餐并问价钱", "en": "I can order food with 要/想 and ask the price.", "ex": "吃、喝、要、想、多少钱、块"}, {"n": 10, "h": 5, "zh": "能评价味道，说出一顿饭吃了什么", "en": "I can say how food tastes and what I ate for a meal.", "ex": "好吃、好喝、甜、辣、饿、饱"}]}, {"zh": "爱好与运动", "en": "Hobbies & Sports", "c": [{"n": 16, "h": 6, "zh": "能说出常见运动和活动", "en": "I can name common sports and activities.", "ex": "足球、篮球、游泳、跑步、画画、唱歌"}, {"n": 11, "h": 7, "zh": "能问朋友的爱好，说自己会/不会做什么", "en": "I can ask about a friend's hobbies and say what I can or can't do.", "ex": "爱好、会、不会、踢、打、玩"}, {"n": 9, "h": 6, "zh": "能说周末计划或邀请朋友一起活动", "en": "I can talk about weekend plans or invite a friend to do something.", "ex": "周末、一起、吧、可以、常常、和"}]}, {"zh": "服装与颜色", "en": "Clothes & Colours", "c": [{"n": 11, "h": 1, "zh": "能说出颜色和日常衣服", "en": "I can name colours and everyday clothes.", "ex": "衣服、裤子、裙子、鞋、帽子、红色"}, {"n": 6, "h": 3, "zh": "能说某人今天穿了什么颜色的衣服", "en": "I can say what colour clothes someone is wearing today.", "ex": "穿、颜色、件、条、双、新"}, {"n": 5, "h": 3, "zh": "能进行买衣服的对话（大小、颜色、价钱）", "en": "I can have a shopping conversation about size, colour and price.", "ex": "贵、便宜、试试、太……了、一点儿"}]}, {"zh": "天气与季节", "en": "Weather & Seasons", "c": [{"n": 13, "h": 6, "zh": "能认读天气词和季节名称", "en": "I can read weather words and the names of seasons.", "ex": "天气、晴天、下雨、下雪、刮风、热"}, {"n": 5, "h": 3, "zh": "能问答今天、明天的天气", "en": "I can ask and answer about today's and tomorrow's weather.", "ex": "怎么样、会、度、有一点儿、有点儿"}, {"n": 5, "h": 1, "zh": "能比较不同季节，建议适合的活动", "en": "I can compare seasons and suggest activities for the weather.", "ex": "比、最、季节、时候、不……也不……"}]}, {"zh": "交通与旅行", "en": "Transport & Travel", "c": [{"n": 16, "h": 10, "zh": "能说出交通工具和上下左右", "en": "I can name vehicles and say up, down, left and right.", "ex": "公共汽车、出租车、地铁、飞机、火车、自行车"}, {"n": 9, "h": 6, "zh": "能问“怎么去”，用坐/骑/开说出行方式", "en": "I can ask how to get somewhere and answer with 坐/骑/开.", "ex": "去、怎么、坐、骑、开车、远"}, {"n": 6, "h": 1, "zh": "能用“先……然后……”说路线或旅行计划", "en": "I can describe a route or trip with 先……然后…….", "ex": "往、走、到、一直、旅行、放假"}]}, {"zh": "健康与社区", "en": "Health & Community", "c": [{"n": 13, "h": 6, "zh": "能说出身体部位和医院、商店等地方", "en": "I can name body parts and places like the hospital and shop.", "ex": "头、手、脚、眼睛、肚子、医院"}, {"n": 10, "h": 8, "zh": "能说哪里不舒服，问某个地方在哪儿", "en": "I can say where it hurts and ask where a place is.", "ex": "疼、舒服、生病、医生、请问、病"}, {"n": 7, "h": 3, "zh": "能给简单的健康建议或指路", "en": "I can give simple health advice or directions.", "ex": "应该、休息、多、前面、旁边、对面"}]}];
+// planned stage per cell: primary covers L1–L2, middle school completes L3
+function renderTM(){
+  const lvn=[{zh:"Level 1 · 说出名称",en:"Level 1 · Naming"},{zh:"Level 2 · 问答交流",en:"Level 2 · Q&A"},{zh:"Level 3 · 连贯描述",en:"Level 3 · Describing"}];
+  $("tmTable").innerHTML=`<thead><tr><th>${B({zh:"主题",en:"Theme"})}</th>${lvn.map(l=>`<th>${B(l)}</th>`).join("")}</tr></thead><tbody>`+
+   MAP.map((T,ti)=>`<tr><td class="tn">${ti+1}. ${B({zh:T.zh,en:T.en})}</td>${T.c.map((c,li)=>`<td><button class="cell ${li<2?"s-pri":"s-ms"}" data-t="${ti}" data-l="${li}"><b>${B({zh:c.zh,en:c.en})}</b><span class="n">${B({zh:`${c.n} 个词 · HSK 一级 ${c.h}`,en:`${c.n} words · ${c.h} HSK L1`})}</span></button></td>`).join("")}</tr>`).join("")+"</tbody>";
+  document.querySelectorAll(".cell").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll(".cell").forEach(x=>x.setAttribute("aria-pressed","false"));b.setAttribute("aria-pressed","true");
+    const T=MAP[+b.dataset.t],c=T.c[+b.dataset.l],li=+b.dataset.l;
+    $("cellInfo").innerHTML=`<b>${+b.dataset.t+1}. ${B({zh:T.zh,en:T.en})} · Level ${li+1}</b><span>${B({zh:c.zh,en:c.en})}</span><span class="note">${B({zh:`${c.n} 个词，其中 ${c.h} 个是 HSK 3.0 一级词。例：${c.ex}……`,en:`${c.n} words, ${c.h} of them HSK 3.0 Level 1. For example: ${c.ex}…`})}</span><span class="note">${B(li<2?{zh:"建议在 G3–5 小学阶段学到这一格；Mandarin I 学生在高一一年内完成。",en:"Planned for G3–5 primary; Mandarin I students cover it within their first high-school year."}:{zh:"建议在 G6–8 初中阶段完成；Mandarin I 学生在高一一年内完成。",en:"Planned to be completed in G6–8; Mandarin I students cover it within their first high-school year."})}</span>`});
+}
+// ---- method, phases, families ----
+function renderRest(){
+  $("phases").innerHTML=PHASES.map(([t,w,items,gate])=>`<div class="phase"><span class="when">${w}</span><h3>${B(t)}</h3><ul>${items.map(i=>`<li>${B(i)}</li>`).join("")}</ul><span class="gate">${B(gate)}</span></div>`).join("");
+  $("famCards").innerHTML=FAMS.map(([t,p,d])=>`<div class="card"><span class="q">${B(p)}</span><h3>${B(t)}</h3><p>${B(d)}</p></div>`).join("");
+}
+document.body.classList.add("l-en");
+// fit the title to one line on wide screens; wrap (balanced) below 28px
+function fitTitle(){const h=document.querySelector("h1");h.style.fontSize="";h.style.whiteSpace="nowrap";
+  const max=56,min=24,w=h.clientWidth;h.style.fontSize=max+"px";const sw=h.scrollWidth;
+  let f=Math.min(max,Math.floor(max*w/sw*0.98));if(f<min){f=Math.max(24,Math.min(34,w/13));h.style.whiteSpace=""}
+  h.style.fontSize=f+"px"}
+addEventListener("resize",fitTitle);
+
+renderCourses();renderCW();renderRest();setLang(lang);showStage();
+</script>
+
+</body></html>
