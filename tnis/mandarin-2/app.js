@@ -315,9 +315,10 @@ document.addEventListener("click", (ev) => {
 });
 
 // ───────── progress ─────────
+// pending: entry ID for a separate "Words still settling" question. Empty = both lists go into the practise field.
 // Google Form (TNIS - Mandarin II - Map response). Email is collected by the form itself.
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdt7wE3ZQj08PjTeTSLUEbONj93_-Kc1NmGLZy-MzDcER0c8Q/viewform";
-const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961" };
+const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", pending: "" };
 const b64e = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const b64d = (b) => { b = b.replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "="; return new TextDecoder().decode(Uint8Array.from(atob(b), (c) => c.charCodeAt(0))); };
 // Code format: "M2." + base64url("2|day|streak|reviews|lastDay|<hanzi><b>…|<grammarId>=<b>,…")
@@ -348,15 +349,21 @@ function viewProgress(msg) {
   const N = Object.keys(WORDS).length;
   const totalK = Object.keys(WORDS).filter(known).length;
   const code = makeCode();
-  const practise = Object.keys(WORDS).filter((h) => { const it = item("w:" + h); return it.seen > 0 && it.b < 2; })
-    .sort((a, b) => item("w:" + a).b - item("w:" + b).b).slice(0, 30);
+  // Wrong = last answer was wrong (b 0). Settling = right once, needs a second day (b 1).
+  const wrongW = Object.keys(WORDS).filter((h) => { const it = item("w:" + h); return it.seen > 0 && it.b === 0; }).slice(0, 25);
+  const settlingW = Object.keys(WORDS).filter((h) => item("w:" + h).b === 1).slice(0, 25);
   const params = new URLSearchParams({ usp: "pp_url" });
   params.set(ENTRY.code, code);
   params.set(ENTRY.words, `${totalK}/${N}`);
   params.set(ENTRY.stations, `${m}/${sts.length}`);
   params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
-  params.set(ENTRY.practise, practise.join("、") || "none");
+  if (ENTRY.pending) {
+    params.set(ENTRY.practise, wrongW.join("、") || "none");
+    params.set(ENTRY.pending, settlingW.join("、") || "none");
+  } else {
+    params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Settling: ${settlingW.join("、") || "none"}`);
+  }
   const formUrl = FORM + "?" + params.toString();
   main.innerHTML = `<section class="block"><h2>My progress</h2>
     <div class="tiles"><div class="tile"><b>${m}</b><span>/${sts.length}<br>stations mastered</span></div>
@@ -375,6 +382,10 @@ function viewProgress(msg) {
     <div class="code"><input id="rcode" type="text" placeholder="M2.…" style="flex:1;min-width:220px;font:inherit;padding:6px 8px;border:1px solid var(--line, #d1d5db);border-radius:6px"><button type="button" class="btn ghost small" id="restore">Restore</button></div>
     ${msg ? `<p class="hint" role="status" style="margin-top:8px"><b>${esc(msg)}</b></p>` : ""}
   </section>
+  ${wrongW.length || settlingW.length ? `<section class="block"><h3>Words to practise</h3>
+    ${wrongW.length ? `<p class="hint"><b>Got wrong last time</b> (${wrongW.length})</p><p class="zh">${wrongW.map(esc).join("、")}</p>` : ""}
+    ${settlingW.length ? `<p class="hint" style="margin-top:8px"><b>Right once, get it right again on another day</b> (${settlingW.length})</p><p class="zh">${settlingW.map(esc).join("、")}</p>` : ""}
+  </section>` : ""}
   <section class="block"><h3>By station</h3><ul class="plist">${sts.map((x) => `<li><a href="#s-${x.s.id}"><span class="zh">${esc(x.s.title)}</span><span class="meter"><i style="width:${x.n ? (x.k / x.n) * 100 : 0}%"></i></span><span class="num">${x.k}/${x.n}</span>${x.mastered ? '<span class="tick">✓</span>' : ""}</a></li>`).join("")}</ul></section>
   <section class="block reset"><button type="button" class="btn ghost small" id="reset">Reset my progress</button><span id="reset-confirm" hidden> Are you sure? <button type="button" class="btn danger small" id="reset-yes">Yes, reset</button></span></section>`;
 }
