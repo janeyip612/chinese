@@ -127,7 +127,7 @@ const STATIONS = [
     ],
   },
   {
-    id: "s6", zone: "b3", week: 7, title: "颜色和大小", en: "Colours & size", when: "Week 7",
+    id: "s6", zone: "b3", week: 7, title: "颜色、大小", en: "Colours & size", when: "Week 7",
     words: [
       "红色|hóngsè|red", "黄色|huángsè|yellow", "蓝色|lánsè|blue", "绿色|lǜsè|green", "黑色|hēisè|black", "白色|báisè|white",
       "大|dà|big", "小|xiǎo|small",
@@ -148,7 +148,7 @@ const STATIONS = [
 
   // ───────── Names, dates & questions (Weeks 10–12) ─────────
   {
-    id: "s7", zone: "b2", week: 10, title: "名字和生日", en: "Names & birthdays", when: "Week 10",
+    id: "s7", zone: "b2", week: 10, title: "名字、生日", en: "Names & birthdays", when: "Week 10",
     words: [
       "姓|xìng|surname; to be surnamed", "中文|Zhōngwén|Chinese (language)", "年|nián|year", "月|yuè|month; moon",
       "日|rì|day (written dates); sun", "号|hào|day of the month (spoken)", "几|jǐ|which; how many", "今天|jīntiān|today",
@@ -246,7 +246,7 @@ const STATIONS = [
     frames: [
       { q: "你有爷爷奶奶吗？|Nǐ yǒu yéye nǎinai ma?|Do you have grandparents?",
         t: ["我|wǒ", { s: ["有|yǒu", "没有|méiyǒu"] }, { s: ["爷爷|yéye", "奶奶|nǎinai", "外公|wàigōng", "外婆|wàipó"] }, "。|."],
-        ex: "我有外公和外婆。|Wǒ yǒu wàigōng hé wàipó.|I have a grandpa and a grandma on my mum's side." },
+        ex: "我有外公。|Wǒ yǒu wàigōng.|I have a grandpa on my mum's side." },
       { q: "她叫什么？她喜欢什么？|Tā jiào shénme? Tā xǐhuan shénme?|What's her name? What does she like?",
         t: [{ s: ["他|tā", "她|tā"] }, "叫|jiào", { s: ["阮安|Ruǎn Ān", "陈小月|Chén Xiǎoyuè"] }, "，|,", { s: ["他|tā", "她|tā"], link: 0 }, "喜欢|xǐhuan", { s: ["音乐|yīnyuè", "运动|yùndòng"] }, "。|."],
         ex: "她叫陈小月，她喜欢音乐。|Tā jiào Chén Xiǎoyuè, tā xǐhuan yīnyuè.|Her name is Chen Xiaoyue; she likes music." },

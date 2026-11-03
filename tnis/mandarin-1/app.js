@@ -318,7 +318,7 @@ document.addEventListener("click", (ev) => {
 // practise = both lists in one line; wrong / pending = separate "Wrong" and "Settling" questions (leave empty if the form has none).
 // Google Form (TNIS - Mandarin I - Map response). Email is collected by the form itself. Leave FORM empty to hide the Send button.
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSejnVcOge5lQ-8iStTud00mxYVXn2yNkBMEXjVM8f4GhOyPmQ/viewform";
-const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", wrong: "", pending: "" };
+const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", wrong: "entry.425955698", pending: "entry.1274056252" };
 const b64e = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const b64d = (b) => { b = b.replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "="; return new TextDecoder().decode(Uint8Array.from(atob(b), (c) => c.charCodeAt(0))); };
 // Code format: "M2." + base64url("2|day|streak|reviews|lastDay|<hanzi><b>…|<grammarId>=<b>,…")
