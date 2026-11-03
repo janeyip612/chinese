@@ -39,12 +39,18 @@ function stationStats(st) {
 // ───────── speech (vocabulary only) ─────────
 let zhVoice = null;
 function pickVoice() {
-  try { const vs = speechSynthesis.getVoices(); zhVoice = vs.find((v) => /zh[-_]CN/i.test(v.lang)) || vs.find((v) => /^zh/i.test(v.lang)) || null; } catch (e) { zhVoice = null; }
+  // Prefer natural (neural / online) Mandarin voices; never Cantonese or Taiwan voices. Same ranking as the Lexuefang pages.
+  try {
+    const RANK = [/xiaoxiao|xiaoyi|yunxi|natural|online/i, /google.*(普通话|mandarin|chinese)|google/i, /lili|yu-?shu|tingting|ting-ting|premium|enhanced|增强/i, /huihui|kangkang|yaoyao/i];
+    const vs = speechSynthesis.getVoices().filter((v) => /^(zh|cmn)/i.test(v.lang) && !/(HK|TW|yue|Hant)/i.test(v.lang + v.name));
+    const score = (v) => { const i = RANK.findIndex((r) => r.test(v.name)); return (i < 0 ? 9 : i) + (/CN|Hans/i.test(v.lang) ? 0 : 0.5); };
+    zhVoice = vs.sort((x, y) => score(x) - score(y))[0] || null;
+  } catch (e) { zhVoice = null; }
 }
 if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 function speak(text) {
   if (!zhVoice) return false;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.voice = zhVoice; u.lang = zhVoice.lang; u.rate = 0.8; speechSynthesis.speak(u); return true; } catch (e) { return false; }
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.voice = zhVoice; u.lang = zhVoice.lang; u.rate = 0.85; speechSynthesis.speak(u); return true; } catch (e) { return false; }
 }
 
 // ───────── frames (sentence builder) ─────────
