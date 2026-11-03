@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>乐学坊句子练习</title>
+<title>乐学坊 · 生词与句子</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,7 +50,7 @@ h1{font-family:var(--f-han);font-size:clamp(26px,5vw,34px);margin:0;letter-spaci
 .setbtn:hover{border-color:var(--accent)}
 .setbtn b{font-size:13px;color:var(--accent)}
 .setbtn span{font-size:13px;color:var(--ink)}
-.setbtn.l1{opacity:.7;cursor:default;background:transparent;border-style:dashed}
+.setbtn.l1{background:transparent;border-style:dashed}
 .setbtn .done{font-size:12px;color:var(--ok)}
 .scroll{overflow-x:auto}
 /* practice */
@@ -104,19 +104,45 @@ body.nopy .tile .p,body.nopy .ans .p{display:none}
 .tag.shown{background:var(--warn-soft);color:var(--warn)}
 .msg{font-size:14px;color:var(--accent);min-height:1.3em}
 .msg.err{color:var(--bad)}
+/* word cards: tap to flip; front = hanzi (+pinyin), back = sound + English + Vietnamese */
+.view{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:-4px}
+.view button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 16px;font-size:15px;font-weight:500;color:var(--muted)}
+.view button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.card{position:relative;height:150px;border:0;padding:0;background:none;perspective:900px;cursor:pointer;font:inherit;color:inherit}
+.card .in{position:absolute;inset:0;transform-style:preserve-3d}
+.card.on .in{transform:rotateY(180deg)}
+.card .fc{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:10px;text-align:center}
+.card .fr{background:var(--tile);border:1px solid var(--tile-line);box-shadow:0 3px 0 var(--tile-shadow)}
+.card .bk{background:var(--surface);border:2px solid var(--accent);transform:rotateY(180deg)}
+.card .fr .h{font-family:var(--f-han);font-size:38px;line-height:1.15}
+.card .fr .p{font-size:15px;color:var(--accent);font-weight:500}
+.card .bk .h{font-family:var(--f-han);font-size:24px;line-height:1.2}
+.card .bk .p{font-size:13px;color:var(--accent);font-weight:500}
+.card .bk .m{font-size:14px;line-height:1.3}
+.card .bk .m2{font-size:13px;color:var(--muted);line-height:1.3}
+.card .snd{position:absolute;top:6px;right:8px;font-size:16px;opacity:.75}
+.card .fw{position:absolute;top:7px;left:9px;font-size:11px;color:var(--muted)}
+body.nopy .card .fr .p{display:none}
+.cardbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.cardbar>div{display:flex;flex-wrap:wrap;gap:8px}
+.setbtn .wl{font-family:var(--f-han);font-size:16px;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card .in{transition:transform .45s}}
+@media (max-width:560px){.cards{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.card{height:136px}.card .fr .h{font-size:32px}}
 @media (max-width:560px){.prompt{font-size:18px}.tile .h{font-size:24px}.sets{border-spacing:5px}}
 @media (prefers-reduced-motion:no-preference){.tile{transition:transform .08s}}
 </style>
 
 <div class="wrap">
   <header>
-    <div><div class="eyebrow">乐学坊 · 主题地图 Level 2–3</div><h1>句子练习</h1></div>
+    <div><div class="eyebrow">乐学坊 · 主题地图</div><h1 id="ttl">句子练习</h1></div>
     <div class="controls">
       <label class="name" for="who">我的名字<input id="who" type="text" placeholder="Name" autocomplete="off"></label>
       <div class="seg" role="group" aria-label="提示语言"><button data-l="en" aria-pressed="true">English</button><button data-l="vi" aria-pressed="false">Tiếng Việt</button></div>
       <div class="seg" role="group" aria-label="拼音"><button id="pyOn" aria-pressed="true">拼音 开</button><button id="pyOff" aria-pressed="false">关</button></div>
     </div>
   </header>
+  <nav class="view" aria-label="练习"><button data-v="words" aria-pressed="false">生词卡 Word cards</button><button data-v="sent" aria-pressed="true">句子练习 Sentences</button></nav>
   <main id="app"></main>
 </div>
 
@@ -226,10 +252,161 @@ const SETS=[
   {t:[["我的","wǒ de"],["学校","xuéxiào"],["很","hěn"],["大","dà"]],e:"。",en:"My school is very big.",vi:"Trường của mình rất to."},
   {t:[["我","wǒ"],["先","xiān"],["上","shàng"],["中文","Zhōngwén"],["课","kè"],["，",""],["然后","ránhòu"],["上","shàng"],["数学","shùxué"],["课","kè"]],e:"。",en:"First I have Chinese class, then maths class.",vi:"Mình học tiếng Trung trước, sau đó học toán."},
   {t:[["因为","yīnwèi"],["我","wǒ"],["坐","zuò"],["校车","xiàochē"],["，",""],["所以","suǒyǐ"],["我","wǒ"],["每天","měitiān"],["七","qī"],["点","diǎn"],["起床","qǐchuáng"]],e:"。",en:"Because I take the school bus, I get up at seven every day.",vi:"Vì mình đi xe buýt trường nên mỗi ngày mình dậy lúc bảy giờ."},
-  {t:[["我","wǒ"],["觉得","juéde"],["汉字","Hànzì"],["很","hěn"],["有意思","yǒu yìsi"]],e:"。",en:"I think Chinese characters are interesting.",vi:"Mình thấy chữ Hán rất thú vị."}]}
+  {t:[["我","wǒ"],["觉得","juéde"],["汉字","Hànzì"],["很","hěn"],["有意思","yǒu yìsi"]],e:"。",en:"I think Chinese characters are interesting.",vi:"Mình thấy chữ Hán rất thú vị."}]},
+ {t:5,l:2,zh:"饮食与用餐",cd:["能用“要/想”点餐并问价钱", "I can order food with 要/想 and ask the price.", "Em gọi món được bằng 要/想 và hỏi giá."],q:[
+  {t:[["你","nǐ"],["想","xiǎng"],["吃","chī"],["什么","shénme"]],e:"？",en:"What would you like to eat?",vi:"Bạn muốn ăn gì?"},
+  {t:[["我","wǒ"],["想","xiǎng"],["吃","chī"],["饺子","jiǎozi"]],e:"。",en:"I'd like to eat dumplings.",vi:"Mình muốn ăn sủi cảo."},
+  {t:[["你","nǐ"],["想","xiǎng"],["喝","hē"],["什么","shénme"]],e:"？",en:"What would you like to drink?",vi:"Bạn muốn uống gì?"},
+  {t:[["我","wǒ"],["要","yào"],["一杯","yì bēi"],["果汁","guǒzhī"]],e:"。",en:"I want a glass of juice.",vi:"Mình muốn một cốc nước ép."},
+  {t:[["妈妈","māma"],["要","yào"],["两杯","liǎng bēi"],["茶","chá"]],e:"。",en:"Mum wants two cups of tea.",vi:"Mẹ muốn hai cốc trà."},
+  {t:[["这个","zhège"],["多少钱","duōshao qián"]],e:"？",en:"How much is this?",vi:"Cái này bao nhiêu tiền?"},
+  {t:[["这个","zhège"],["苹果","píngguǒ"],["三块","sān kuài"]],e:"。",en:"This apple is three kuai.",vi:"Quả táo này ba tệ."},
+  {t:[["你","nǐ"],["买","mǎi"],["什么","shénme"]],e:"？",en:"What are you buying?",vi:"Bạn mua gì?"},
+  {t:[["我","wǒ"],["买","mǎi"],["五个","wǔ ge"],["包子","bāozi"]],e:"。",en:"I'm buying five steamed buns.",vi:"Mình mua năm cái bánh bao."},
+  {t:[["饭店","fàndiàn"],["里","li"],["有","yǒu"],["面条","miàntiáo"],["吗","ma"]],e:"？",en:"Does the restaurant have noodles?",vi:"Nhà hàng có mì không?"},
+  {t:[["请","qǐng"],["给","gěi"],["我","wǒ"],["一杯","yì bēi"],["水","shuǐ"]],e:"。",en:"Please give me a glass of water.",vi:"Làm ơn cho mình một cốc nước."},
+  {t:[["一个","yí ge"],["面包","miànbāo"],["十块","shí kuài"],["钱","qián"]],e:"。",en:"One bread roll is ten kuai.",vi:"Một cái bánh mì mười tệ."},
+  {t:[["我","wǒ"],["不","bù"],["喝","hē"],["牛奶","niúnǎi"]],e:"。",en:"I don't drink milk.",vi:"Mình không uống sữa."}]},
+ {t:5,l:3,zh:"饮食与用餐",cd:["能评价味道，说出一顿饭吃了什么", "I can say how food tastes and what I ate for a meal.", "Em nhận xét được vị món ăn và kể bữa ăn đã ăn gì."],q:[
+  {t:[["今天","jīntiān"],["早饭","zǎofàn"],["我","wǒ"],["吃了","chī le"],["面包","miànbāo"]],e:"。",en:"Today I had bread for breakfast.",vi:"Bữa sáng hôm nay mình ăn bánh mì.",alt:[["我","今天","早饭","吃了","面包"]]},
+  {t:[["我","wǒ"],["还","hái"],["喝了","hē le"],["牛奶","niúnǎi"]],e:"。",en:"I also drank milk.",vi:"Mình còn uống sữa nữa."},
+  {t:[["午饭","wǔfàn"],["我","wǒ"],["想","xiǎng"],["吃","chī"],["米饭","mǐfàn"]],e:"。",en:"For lunch I want to eat rice.",vi:"Bữa trưa mình muốn ăn cơm.",alt:[["我","午饭","想","吃","米饭"]]},
+  {t:[["这个","zhège"],["苹果","píngguǒ"],["很","hěn"],["好吃","hǎochī"]],e:"。",en:"This apple is delicious.",vi:"Quả táo này rất ngon."},
+  {t:[["果汁","guǒzhī"],["很","hěn"],["好喝","hǎohē"],["，",""],["有一点儿","yǒu yìdiǎnr"],["甜","tián"]],e:"。",en:"The juice tastes good; it's a little sweet.",vi:"Nước ép rất ngon, hơi ngọt."},
+  {t:[["我","wǒ"],["不","bù"],["吃","chī"],["辣的","là de"],["菜","cài"]],e:"。",en:"I don't eat spicy food.",vi:"Mình không ăn đồ cay."},
+  {t:[["我","wǒ"],["饿了","è le"],["，",""],["我","wǒ"],["想","xiǎng"],["吃","chī"],["饺子","jiǎozi"]],e:"。",en:"I'm hungry; I want to eat dumplings.",vi:"Mình đói rồi, mình muốn ăn sủi cảo."},
+  {t:[["我","wǒ"],["吃","chī"],["饱","bǎo"],["了","le"]],e:"。",en:"I'm full.",vi:"Mình no rồi."},
+  {t:[["我","wǒ"],["不要","búyào"],["米饭","mǐfàn"],["，",""],["谢谢","xièxie"]],e:"。",en:"No rice for me, thanks.",vi:"Mình không lấy cơm, cảm ơn."},
+  {t:[["妈妈","māma"],["做的","zuò de"],["饺子","jiǎozi"],["非常","fēicháng"],["好吃","hǎochī"]],e:"。",en:"The dumplings Mum makes are really delicious.",vi:"Sủi cảo mẹ làm rất ngon."},
+  {t:[["因为","yīnwèi"],["我","wǒ"],["很","hěn"],["饿","è"],["，",""],["所以","suǒyǐ"],["我","wǒ"],["吃了","chī le"],["两个","liǎng ge"],["包子","bāozi"]],e:"。",en:"Because I was very hungry, I ate two steamed buns.",vi:"Vì mình rất đói nên mình đã ăn hai cái bánh bao."}]},
+ {t:6,l:2,zh:"爱好与运动",cd:["能问朋友的爱好，说自己会/不会做什么", "I can ask about a friend's hobbies and say what I can or can't do.", "Em hỏi được sở thích của bạn và nói mình biết/không biết làm gì."],q:[
+  {t:[["你的","nǐ de"],["爱好","àihào"],["是","shì"],["什么","shénme"]],e:"？",en:"What's your hobby?",vi:"Sở thích của bạn là gì?"},
+  {t:[["我的","wǒ de"],["爱好","àihào"],["是","shì"],["唱歌","chànggē"]],e:"。",en:"My hobby is singing.",vi:"Sở thích của mình là hát."},
+  {t:[["你","nǐ"],["会","huì"],["游泳","yóuyǒng"],["吗","ma"]],e:"？",en:"Can you swim?",vi:"Bạn biết bơi không?"},
+  {t:[["我","wǒ"],["不会","bú huì"],["游泳","yóuyǒng"]],e:"。",en:"I can't swim.",vi:"Mình không biết bơi."},
+  {t:[["我","wǒ"],["喜欢","xǐhuan"],["踢","tī"],["足球","zúqiú"]],e:"。",en:"I like playing football.",vi:"Mình thích đá bóng."},
+  {t:[["哥哥","gēge"],["喜欢","xǐhuan"],["打","dǎ"],["篮球","lánqiú"]],e:"。",en:"My older brother likes playing basketball.",vi:"Anh trai mình thích chơi bóng rổ."},
+  {t:[["弟弟","dìdi"],["正在","zhèngzài"],["玩","wán"],["游戏","yóuxì"]],e:"。",en:"My younger brother is playing a game.",vi:"Em trai mình đang chơi trò chơi."},
+  {t:[["妈妈","māma"],["正在","zhèngzài"],["打电话","dǎ diànhuà"]],e:"。",en:"Mum is on the phone.",vi:"Mẹ đang gọi điện thoại."},
+  {t:[["你","nǐ"],["会","huì"],["唱","chàng"],["中文","Zhōngwén"],["歌","gē"],["吗","ma"]],e:"？",en:"Can you sing Chinese songs?",vi:"Bạn biết hát bài hát tiếng Trung không?"},
+  {t:[["我","wǒ"],["在","zài"],["电影院","diànyǐngyuàn"],["看","kàn"],["电影","diànyǐng"]],e:"。",en:"I watch films at the cinema.",vi:"Mình xem phim ở rạp chiếu phim."},
+  {t:[["我","wǒ"],["听见","tīngjiàn"],["妹妹","mèimei"],["唱歌","chànggē"]],e:"。",en:"I can hear my younger sister singing.",vi:"Mình nghe thấy em gái đang hát."},
+  {t:[["姐姐","jiějie"],["会","huì"],["跳舞","tiàowǔ"],["，",""],["也","yě"],["会","huì"],["画画","huà huà"]],e:"。",en:"My older sister can dance, and she can draw too.",vi:"Chị gái mình biết nhảy, cũng biết vẽ.",alt:[["姐姐","会","画画","，","也","会","跳舞"]]}]},
+ {t:6,l:3,zh:"爱好与运动",cd:["能说周末计划或邀请朋友一起活动", "I can talk about weekend plans or invite a friend to do something.", "Em nói được kế hoạch cuối tuần hoặc rủ bạn cùng chơi."],q:[
+  {t:[["周末","zhōumò"],["我们","wǒmen"],["一起","yìqǐ"],["去","qù"],["踢","tī"],["足球","zúqiú"],["吧","ba"]],e:"！",en:"Let's go and play football together at the weekend!",vi:"Cuối tuần chúng mình cùng đi đá bóng nhé!",alt:[["我们","周末","一起","去","踢","足球","吧"]]},
+  {t:[["我","wǒ"],["常常","chángcháng"],["和","hé"],["朋友","péngyou"],["一起","yìqǐ"],["打","dǎ"],["篮球","lánqiú"]],e:"。",en:"I often play basketball with my friends.",vi:"Mình thường chơi bóng rổ cùng bạn bè.",alt:[["我","和","朋友","常常","一起","打","篮球"]]},
+  {t:[["周末","zhōumò"],["我","wǒ"],["常常","chángcháng"],["看","kàn"],["电视","diànshì"]],e:"。",en:"At weekends I often watch TV.",vi:"Cuối tuần mình thường xem tivi.",alt:[["我","周末","常常","看","电视"]]},
+  {t:[["这个","zhège"],["电影","diànyǐng"],["很","hěn"],["好看","hǎokàn"]],e:"。",en:"This film is really good.",vi:"Bộ phim này rất hay."},
+  {t:[["中文","Zhōngwén"],["歌","gē"],["很","hěn"],["好听","hǎotīng"]],e:"。",en:"Chinese songs sound lovely.",vi:"Bài hát tiếng Trung rất hay."},
+  {t:[["这个","zhège"],["游戏","yóuxì"],["很","hěn"],["好玩儿","hǎowánr"]],e:"。",en:"This game is a lot of fun.",vi:"Trò chơi này rất vui."},
+  {t:[["我们","wǒmen"],["可以","kěyǐ"],["一起","yìqǐ"],["唱歌","chànggē"],["吗","ma"]],e:"？",en:"Can we sing together?",vi:"Chúng mình có thể cùng hát không?"},
+  {t:[["周末","zhōumò"],["我","wǒ"],["可以","kěyǐ"],["和","hé"],["你","nǐ"],["一起","yìqǐ"],["去","qù"],["游泳","yóuyǒng"],["吗","ma"]],e:"？",en:"Can I go swimming with you at the weekend?",vi:"Cuối tuần mình có thể đi bơi cùng bạn không?",alt:[["我","周末","可以","和","你","一起","去","游泳","吗"]]},
+  {t:[["我","wǒ"],["最","zuì"],["喜欢","xǐhuan"],["画画","huà huà"],["，",""],["因为","yīnwèi"],["画画","huà huà"],["很","hěn"],["有意思","yǒu yìsi"]],e:"。",en:"I like drawing best, because drawing is interesting.",vi:"Mình thích vẽ nhất, vì vẽ rất thú vị."},
+  {t:[["爸爸","bàba"],["常常","chángcháng"],["和","hé"],["我","wǒ"],["一起","yìqǐ"],["跑步","pǎobù"]],e:"。",en:"Dad often goes running with me.",vi:"Bố thường chạy bộ cùng mình."},
+  {t:[["我们","wǒmen"],["一起","yìqǐ"],["看书","kàn shū"],["吧","ba"]],e:"。",en:"Let's read together.",vi:"Chúng mình cùng đọc sách nhé."}]},
+ {t:7,l:2,zh:"服装与颜色",cd:["能说某人今天穿了什么颜色的衣服", "I can say what colour clothes someone is wearing today.", "Em nói được hôm nay ai đó mặc quần áo màu gì."],q:[
+  {t:[["你","nǐ"],["今天","jīntiān"],["穿","chuān"],["什么","shénme"],["颜色","yánsè"],["的","de"],["衣服","yīfu"]],e:"？",en:"What colour clothes are you wearing today?",vi:"Hôm nay bạn mặc quần áo màu gì?",alt:[["今天","你","穿","什么","颜色","的","衣服"]]},
+  {t:[["我","wǒ"],["今天","jīntiān"],["穿","chuān"],["白色的","báisè de"],["衣服","yīfu"]],e:"。",en:"Today I'm wearing white clothes.",vi:"Hôm nay mình mặc quần áo màu trắng.",alt:[["今天","我","穿","白色的","衣服"]]},
+  {t:[["他","tā"],["穿","chuān"],["一件","yí jiàn"],["红色的","hóngsè de"],["衣服","yīfu"]],e:"。",en:"He is wearing a red top.",vi:"Bạn ấy mặc một chiếc áo màu đỏ."},
+  {t:[["姐姐","jiějie"],["穿","chuān"],["一条","yì tiáo"],["蓝色的","lánsè de"],["裙子","qúnzi"]],e:"。",en:"My older sister is wearing a blue skirt.",vi:"Chị gái mình mặc một chiếc váy màu xanh dương."},
+  {t:[["我","wǒ"],["有","yǒu"],["一双","yì shuāng"],["新","xīn"],["鞋","xié"]],e:"。",en:"I have a new pair of shoes.",vi:"Mình có một đôi giày mới."},
+  {t:[["你","nǐ"],["喜欢","xǐhuan"],["什么","shénme"],["颜色","yánsè"]],e:"？",en:"What colour do you like?",vi:"Bạn thích màu gì?"},
+  {t:[["我","wǒ"],["喜欢","xǐhuan"],["绿色","lǜsè"]],e:"。",en:"I like green.",vi:"Mình thích màu xanh lá."},
+  {t:[["这条","zhè tiáo"],["裤子","kùzi"],["是","shì"],["黑色的","hēisè de"]],e:"。",en:"These trousers are black.",vi:"Chiếc quần này màu đen."},
+  {t:[["弟弟的","dìdi de"],["帽子","màozi"],["是","shì"],["黄色的","huángsè de"]],e:"。",en:"My younger brother's hat is yellow.",vi:"Mũ của em trai mình màu vàng."},
+  {t:[["你","nǐ"],["有","yǒu"],["红色的","hóngsè de"],["鞋","xié"],["吗","ma"]],e:"？",en:"Do you have red shoes?",vi:"Bạn có giày màu đỏ không?"},
+  {t:[["妈妈","māma"],["想","xiǎng"],["买","mǎi"],["一件","yí jiàn"],["新","xīn"],["衣服","yīfu"]],e:"。",en:"Mum wants to buy a new top.",vi:"Mẹ muốn mua một chiếc áo mới."}]},
+ {t:7,l:3,zh:"服装与颜色",cd:["能进行买衣服的对话（大小、颜色、价钱）", "I can have a shopping conversation about size, colour and price.", "Em hội thoại được khi mua quần áo (cỡ, màu, giá)."],q:[
+  {t:[["这件","zhè jiàn"],["衣服","yīfu"],["太","tài"],["大","dà"],["了","le"]],e:"。",en:"This top is too big.",vi:"Chiếc áo này rộng quá."},
+  {t:[["有","yǒu"],["小的","xiǎo de"],["吗","ma"]],e:"？",en:"Do you have a smaller one?",vi:"Có cái nhỏ hơn không?"},
+  {t:[["这双","zhè shuāng"],["鞋","xié"],["太","tài"],["贵","guì"],["了","le"]],e:"！",en:"These shoes are too expensive!",vi:"Đôi giày này đắt quá!"},
+  {t:[["便宜","piányi"],["一点儿","yìdiǎnr"],["吧","ba"]],e:"。",en:"Make it a bit cheaper, please.",vi:"Rẻ hơn một chút đi."},
+  {t:[["这条","zhè tiáo"],["裙子","qúnzi"],["很","hěn"],["便宜","piányi"]],e:"。",en:"This skirt is very cheap.",vi:"Chiếc váy này rất rẻ."},
+  {t:[["我","wǒ"],["可以","kěyǐ"],["试试","shìshi"],["吗","ma"]],e:"？",en:"Can I try it on?",vi:"Mình mặc thử được không?"},
+  {t:[["你","nǐ"],["试试","shìshi"],["这件","zhè jiàn"],["蓝色的","lánsè de"]],e:"。",en:"Try this blue one.",vi:"Bạn mặc thử chiếc màu xanh này đi."},
+  {t:[["这条","zhè tiáo"],["裤子","kùzi"],["太","tài"],["长","cháng"],["了","le"]],e:"。",en:"These trousers are too long.",vi:"Chiếc quần này dài quá."},
+  {t:[["这件","zhè jiàn"],["白色的","báisè de"],["衣服","yīfu"],["多少钱","duōshao qián"]],e:"？",en:"How much is this white top?",vi:"Chiếc áo trắng này bao nhiêu tiền?"},
+  {t:[["我","wǒ"],["觉得","juéde"],["黑色的","hēisè de"],["帽子","màozi"],["很","hěn"],["好看","hǎokàn"]],e:"。",en:"I think the black hat looks nice.",vi:"Mình thấy cái mũ màu đen rất đẹp."},
+  {t:[["太","tài"],["好","hǎo"],["了","le"],["！",""],["我","wǒ"],["买","mǎi"],["这双","zhè shuāng"],["鞋","xié"]],e:"。",en:"Great! I'll buy these shoes.",vi:"Tuyệt quá! Mình mua đôi giày này."}]},
+ {t:8,l:2,zh:"天气与季节",cd:["能问答今天、明天的天气", "I can ask and answer about today's and tomorrow's weather.", "Em hỏi và trả lời được về thời tiết hôm nay, ngày mai."],q:[
+  {t:[["今天","jīntiān"],["天气","tiānqì"],["怎么样","zěnmeyàng"]],e:"？",en:"What's the weather like today?",vi:"Hôm nay thời tiết thế nào?"},
+  {t:[["今天","jīntiān"],["很","hěn"],["热","rè"]],e:"。",en:"It's hot today.",vi:"Hôm nay rất nóng."},
+  {t:[["明天","míngtiān"],["会","huì"],["下雨","xià yǔ"],["吗","ma"]],e:"？",en:"Will it rain tomorrow?",vi:"Ngày mai có mưa không?"},
+  {t:[["明天","míngtiān"],["不会","bú huì"],["下雨","xià yǔ"]],e:"。",en:"It won't rain tomorrow.",vi:"Ngày mai sẽ không mưa."},
+  {t:[["今天","jīntiān"],["三十","sānshí"],["度","dù"]],e:"。",en:"It's thirty degrees today.",vi:"Hôm nay ba mươi độ."},
+  {t:[["今天","jīntiān"],["有点儿","yǒudiǎnr"],["冷","lěng"]],e:"。",en:"It's a bit cold today.",vi:"Hôm nay hơi lạnh."},
+  {t:[["现在","xiànzài"],["正在","zhèngzài"],["下雨","xià yǔ"]],e:"。",en:"It's raining right now.",vi:"Bây giờ trời đang mưa."},
+  {t:[["冬天","dōngtiān"],["会","huì"],["下雪","xià xuě"],["吗","ma"]],e:"？",en:"Does it snow in winter?",vi:"Mùa đông có tuyết rơi không?"},
+  {t:[["明天","míngtiān"],["是","shì"],["晴天","qíngtiān"]],e:"。",en:"Tomorrow will be sunny.",vi:"Ngày mai trời nắng."},
+  {t:[["越南的","Yuènán de"],["夏天","xiàtiān"],["很","hěn"],["热","rè"]],e:"。",en:"Summer in Vietnam is hot.",vi:"Mùa hè ở Việt Nam rất nóng."},
+  {t:[["春天的","chūntiān de"],["天气","tiānqì"],["怎么样","zěnmeyàng"]],e:"？",en:"What's the weather like in spring?",vi:"Thời tiết mùa xuân thế nào?"},
+  {t:[["今天","jīntiān"],["十","shí"],["度","dù"],["，",""],["有一点儿","yǒu yìdiǎnr"],["冷","lěng"]],e:"。",en:"It's ten degrees today, a little cold.",vi:"Hôm nay mười độ, hơi lạnh."}]},
+ {t:8,l:3,zh:"天气与季节",cd:["能比较不同季节，建议适合的活动", "I can compare seasons and suggest activities for the weather.", "Em so sánh được các mùa và gợi ý hoạt động phù hợp."],q:[
+  {t:[["夏天","xiàtiān"],["比","bǐ"],["春天","chūntiān"],["热","rè"]],e:"。",en:"Summer is hotter than spring.",vi:"Mùa hè nóng hơn mùa xuân."},
+  {t:[["我","wǒ"],["最","zuì"],["喜欢","xǐhuan"],["秋天","qiūtiān"]],e:"。",en:"I like autumn best.",vi:"Mình thích mùa thu nhất."},
+  {t:[["秋天","qiūtiān"],["不","bù"],["冷","lěng"],["也","yě"],["不","bú"],["热","rè"]],e:"。",en:"Autumn is neither cold nor hot.",vi:"Mùa thu không lạnh cũng không nóng.",alt:[["秋天","不","热","也","不","冷"]]},
+  {t:[["我","wǒ"],["最","zuì"],["喜欢","xǐhuan"],["秋天","qiūtiān"],["，",""],["因为","yīnwèi"],["不","bù"],["冷","lěng"],["也","yě"],["不","bú"],["热","rè"]],e:"。",en:"I like autumn best, because it's neither cold nor hot.",vi:"Mình thích mùa thu nhất, vì không lạnh cũng không nóng.",alt:[["我","最","喜欢","秋天","，","因为","不","热","也","不","冷"]]},
+  {t:[["天气","tiānqì"],["热","rè"],["的时候","de shíhou"],["，",""],["我们","wǒmen"],["可以","kěyǐ"],["去","qù"],["游泳","yóuyǒng"]],e:"。",en:"When it's hot, we can go swimming.",vi:"Khi trời nóng, chúng mình có thể đi bơi."},
+  {t:[["今天","jīntiān"],["比","bǐ"],["昨天","zuótiān"],["冷","lěng"]],e:"。",en:"Today is colder than yesterday.",vi:"Hôm nay lạnh hơn hôm qua."},
+  {t:[["一年","yì nián"],["有","yǒu"],["四个","sì ge"],["季节","jìjié"]],e:"。",en:"There are four seasons in a year.",vi:"Một năm có bốn mùa."},
+  {t:[["你","nǐ"],["最","zuì"],["喜欢","xǐhuan"],["什么","shénme"],["季节","jìjié"]],e:"？",en:"Which season do you like best?",vi:"Bạn thích mùa nào nhất?"},
+  {t:[["下雪","xià xuě"],["的时候","de shíhou"],["，",""],["我","wǒ"],["很","hěn"],["高兴","gāoxìng"]],e:"。",en:"When it snows, I'm very happy.",vi:"Khi tuyết rơi, mình rất vui."},
+  {t:[["下雨","xià yǔ"],["的时候","de shíhou"],["，",""],["我","wǒ"],["在","zài"],["家","jiā"],["看书","kàn shū"]],e:"。",en:"When it rains, I read at home.",vi:"Khi trời mưa, mình ở nhà đọc sách."},
+  {t:[["今天","jīntiān"],["不","bù"],["冷","lěng"],["也","yě"],["不","bú"],["热","rè"],["，",""],["天气","tiānqì"],["很","hěn"],["好","hǎo"]],e:"。",en:"Today it's neither cold nor hot; the weather is lovely.",vi:"Hôm nay không lạnh cũng không nóng, thời tiết rất đẹp.",alt:[["今天","不","热","也","不","冷","，","天气","很","好"]]}]},
+ {t:9,l:2,zh:"交通与旅行",cd:["能问“怎么去”，用坐/骑/开说出行方式", "I can ask how to get somewhere and answer with 坐/骑/开.", "Em hỏi được “đi thế nào” và trả lời bằng 坐/骑/开."],q:[
+  {t:[["你","nǐ"],["怎么","zěnme"],["去","qù"],["学校","xuéxiào"]],e:"？",en:"How do you get to school?",vi:"Bạn đến trường bằng gì?"},
+  {t:[["我","wǒ"],["坐","zuò"],["公共汽车","gōnggòng qìchē"],["去","qù"],["学校","xuéxiào"]],e:"。",en:"I go to school by bus.",vi:"Mình đi xe buýt đến trường."},
+  {t:[["爸爸","bàba"],["开车","kāichē"],["上班","shàngbān"]],e:"。",en:"Dad drives to work.",vi:"Bố lái xe đi làm."},
+  {t:[["姐姐","jiějie"],["骑","qí"],["自行车","zìxíngchē"],["去","qù"],["学校","xuéxiào"]],e:"。",en:"My older sister rides a bike to school.",vi:"Chị gái mình đi xe đạp đến trường."},
+  {t:[["妈妈","māma"],["骑","qí"],["摩托车","mótuōchē"],["上班","shàngbān"]],e:"。",en:"Mum rides a motorbike to work.",vi:"Mẹ đi xe máy đi làm."},
+  {t:[["学校","xuéxiào"],["远","yuǎn"],["吗","ma"]],e:"？",en:"Is school far?",vi:"Trường có xa không?"},
+  {t:[["不","bù"],["远","yuǎn"],["，",""],["很","hěn"],["近","jìn"]],e:"。",en:"No, it's very near.",vi:"Không xa, rất gần."},
+  {t:[["我们","wǒmen"],["坐","zuò"],["飞机","fēijī"],["去","qù"],["中国","Zhōngguó"]],e:"。",en:"We're going to China by plane.",vi:"Chúng mình đi máy bay sang Trung Quốc."},
+  {t:[["你","nǐ"],["明天","míngtiān"],["来","lái"],["学校","xuéxiào"],["吗","ma"]],e:"？",en:"Are you coming to school tomorrow?",vi:"Ngày mai bạn có đến trường không?",alt:[["明天","你","来","学校","吗"]]},
+  {t:[["我们","wǒmen"],["坐","zuò"],["出租车","chūzūchē"],["去","qù"],["吧","ba"]],e:"。",en:"Let's take a taxi.",vi:"Chúng mình đi taxi nhé."},
+  {t:[["你","nǐ"],["会","huì"],["开车","kāichē"],["吗","ma"]],e:"？",en:"Can you drive?",vi:"Bạn biết lái xe không?"},
+  {t:[["车","chē"],["在","zài"],["外边","wàibian"]],e:"。",en:"The car is outside.",vi:"Xe ở bên ngoài."}]},
+ {t:9,l:3,zh:"交通与旅行",cd:["能用“先……然后……”说路线或旅行计划", "I can describe a route or trip with 先……然后…….", "Em kể được đường đi hoặc kế hoạch du lịch bằng 先……然后……."],q:[
+  {t:[["先","xiān"],["一直","yìzhí"],["走","zǒu"],["，",""],["然后","ránhòu"],["往","wǎng"],["左","zuǒ"],["走","zǒu"]],e:"。",en:"First go straight on, then turn left.",vi:"Đi thẳng trước, sau đó rẽ trái."},
+  {t:[["一直","yìzhí"],["往","wǎng"],["前","qián"],["走","zǒu"]],e:"。",en:"Go straight ahead.",vi:"Cứ đi thẳng về phía trước."},
+  {t:[["走","zǒu"],["到","dào"],["学校","xuéxiào"],["，",""],["然后","ránhòu"],["往","wǎng"],["右","yòu"],["走","zǒu"]],e:"。",en:"Walk to the school, then turn right.",vi:"Đi đến trường, sau đó rẽ phải."},
+  {t:[["下","xià"],["车","chē"],["以后","yǐhòu"],["往","wǎng"],["左","zuǒ"],["走","zǒu"]],e:"。",en:"After you get off, turn left.",vi:"Xuống xe rồi rẽ trái."},
+  {t:[["放假","fàngjià"],["的时候","de shíhou"],["，",""],["我","wǒ"],["想","xiǎng"],["坐","zuò"],["飞机","fēijī"],["去","qù"],["中国","Zhōngguó"],["旅行","lǚxíng"]],e:"。",en:"In the holidays, I want to fly to China for a trip.",vi:"Khi được nghỉ, mình muốn đi máy bay sang Trung Quốc du lịch."},
+  {t:[["我们","wǒmen"],["什么","shénme"],["时候","shíhou"],["放假","fàngjià"]],e:"？",en:"When are our holidays?",vi:"Khi nào chúng mình được nghỉ?"},
+  {t:[["我","wǒ"],["喜欢","xǐhuan"],["旅行","lǚxíng"]],e:"。",en:"I like travelling.",vi:"Mình thích đi du lịch."},
+  {t:[["我们","wǒmen"],["坐","zuò"],["火车","huǒchē"],["去","qù"],["旅行","lǚxíng"],["吧","ba"]],e:"！",en:"Let's go on a trip by train!",vi:"Chúng mình đi du lịch bằng tàu hỏa nhé!"},
+  {t:[["我","wǒ"],["每天","měitiān"],["走路","zǒulù"],["到","dào"],["学校","xuéxiào"]],e:"。",en:"I walk to school every day.",vi:"Mỗi ngày mình đi bộ đến trường.",alt:[["每天","我","走路","到","学校"]]},
+  {t:[["放假","fàngjià"],["的时候","de shíhou"],["，",""],["我","wǒ"],["常常","chángcháng"],["和","hé"],["家人","jiārén"],["一起","yìqǐ"],["旅行","lǚxíng"]],e:"。",en:"In the holidays, I often travel with my family.",vi:"Khi được nghỉ, mình thường đi du lịch cùng gia đình."},
+  {t:[["我","wǒ"],["先","xiān"],["坐","zuò"],["地铁","dìtiě"],["，",""],["然后","ránhòu"],["走","zǒu"],["到","dào"],["学校","xuéxiào"]],e:"。",en:"First I take the metro, then I walk to school.",vi:"Mình đi tàu điện ngầm trước, sau đó đi bộ đến trường."}]},
+ {t:10,l:2,zh:"健康与社区",cd:["能说哪里不舒服，问某个地方在哪儿", "I can say where it hurts and ask where a place is.", "Em nói được mình đau ở đâu và hỏi một nơi ở đâu."],q:[
+  {t:[["你","nǐ"],["哪儿","nǎr"],["不","bù"],["舒服","shūfu"]],e:"？",en:"Where do you feel unwell?",vi:"Bạn khó chịu ở đâu?"},
+  {t:[["我","wǒ"],["头","tóu"],["疼","téng"]],e:"。",en:"I have a headache.",vi:"Mình bị đau đầu."},
+  {t:[["我","wǒ"],["肚子","dùzi"],["疼","téng"]],e:"。",en:"I have a stomach ache.",vi:"Mình bị đau bụng."},
+  {t:[["我的","wǒ de"],["手","shǒu"],["很","hěn"],["疼","téng"]],e:"。",en:"My hand really hurts.",vi:"Tay mình đau lắm."},
+  {t:[["我","wǒ"],["不","bù"],["舒服","shūfu"],["，",""],["我","wǒ"],["想","xiǎng"],["去","qù"],["看病","kànbìng"]],e:"。",en:"I don't feel well; I want to see a doctor.",vi:"Mình không khỏe, mình muốn đi khám bệnh."},
+  {t:[["医生","yīshēng"],["在","zài"],["哪儿","nǎr"]],e:"？",en:"Where is the doctor?",vi:"Bác sĩ ở đâu?"},
+  {t:[["请问","qǐngwèn"],["，",""],["超市","chāoshì"],["在","zài"],["哪儿","nǎr"]],e:"？",en:"Excuse me, where is the supermarket?",vi:"Xin hỏi, siêu thị ở đâu?"},
+  {t:[["你","nǐ"],["找","zhǎo"],["什么","shénme"]],e:"？",en:"What are you looking for?",vi:"Bạn tìm gì?"},
+  {t:[["我","wǒ"],["找","zhǎo"],["书店","shūdiàn"]],e:"。",en:"I'm looking for a bookshop.",vi:"Mình tìm hiệu sách."},
+  {t:[["你","nǐ"],["有","yǒu"],["事","shì"],["吗","ma"]],e:"？",en:"Do you need something?",vi:"Bạn có việc gì không?"},
+  {t:[["没事","méishì"],["，",""],["谢谢","xièxie"]],e:"。",en:"It's nothing, thanks.",vi:"Không sao, cảm ơn."},
+  {t:[["我的","wǒ de"],["眼睛","yǎnjing"],["不","bù"],["舒服","shūfu"]],e:"。",en:"My eyes feel sore.",vi:"Mắt mình khó chịu."}]},
+ {t:10,l:3,zh:"健康与社区",cd:["能给简单的健康建议或指路", "I can give simple health advice or directions.", "Em đưa ra được lời khuyên sức khỏe đơn giản hoặc chỉ đường."],q:[
+  {t:[["你","nǐ"],["应该","yīnggāi"],["多","duō"],["喝","hē"],["水","shuǐ"],["，",""],["多","duō"],["休息","xiūxi"]],e:"。",en:"You should drink more water and rest more.",vi:"Bạn nên uống nhiều nước, nghỉ ngơi nhiều.",alt:[["你","应该","多","休息","，","多","喝","水"]]},
+  {t:[["超市","chāoshì"],["在","zài"],["学校","xuéxiào"],["旁边","pángbiān"]],e:"。",en:"The supermarket is next to the school.",vi:"Siêu thị ở bên cạnh trường."},
+  {t:[["公园","gōngyuán"],["在","zài"],["医院","yīyuàn"],["对面","duìmiàn"]],e:"。",en:"The park is opposite the hospital.",vi:"Công viên ở đối diện bệnh viện."},
+  {t:[["书店","shūdiàn"],["在","zài"],["前面","qiánmian"]],e:"。",en:"The bookshop is just ahead.",vi:"Hiệu sách ở phía trước."},
+  {t:[["我","wǒ"],["爸爸","bàba"],["在","zài"],["公司","gōngsī"],["工作","gōngzuò"]],e:"。",en:"My dad works at a company.",vi:"Bố mình làm việc ở công ty."},
+  {t:[["我","wǒ"],["妈妈","māma"],["是","shì"],["医生","yīshēng"],["，",""],["她","tā"],["在","zài"],["医院","yīyuàn"],["工作","gōngzuò"]],e:"。",en:"My mum is a doctor; she works at a hospital.",vi:"Mẹ mình là bác sĩ, mẹ làm việc ở bệnh viện."},
+  {t:[["我","wǒ"],["头","tóu"],["疼","téng"],["，",""],["我","wǒ"],["应该","yīnggāi"],["休息","xiūxi"],["一下","yíxià"]],e:"。",en:"I have a headache; I should rest for a bit.",vi:"Mình đau đầu, mình nên nghỉ một chút."},
+  {t:[["饭馆","fànguǎn"],["在","zài"],["超市","chāoshì"],["旁边","pángbiān"]],e:"。",en:"The restaurant is next to the supermarket.",vi:"Quán ăn ở bên cạnh siêu thị."},
+  {t:[["我家","wǒ jiā"],["前面","qiánmian"],["有","yǒu"],["一个","yí ge"],["公园","gōngyuán"]],e:"。",en:"There's a park in front of my home.",vi:"Trước nhà mình có một công viên."},
+  {t:[["请问","qǐngwèn"],["，",""],["医院","yīyuàn"],["在","zài"],["哪儿","nǎr"],["？",""],["在","zài"],["书店","shūdiàn"],["对面","duìmiàn"]],e:"。",en:"Excuse me, where is the hospital? Opposite the bookshop.",vi:"Xin hỏi, bệnh viện ở đâu? Ở đối diện hiệu sách."},
+  {t:[["你","nǐ"],["不","bù"],["舒服","shūfu"],["的时候","de shíhou"],["，",""],["应该","yīnggāi"],["去","qù"],["看病","kànbìng"]],e:"。",en:"When you feel unwell, you should see a doctor.",vi:"Khi không khỏe, bạn nên đi khám bệnh."}]}
 ];
-const THEMES=[["个人与社交","Me & Friends","Bản thân và bạn bè"],["家庭与住房","Family & Home","Gia đình và nhà ở"],["时间与日常","Time & Daily Routine","Thời gian và sinh hoạt hằng ngày"],["学校与学习","School & Learning","Trường học và học tập"]];
-const L1CD=[["能说出问候语、数字和自己的中文名字","I can say greetings, numbers and my Chinese name.","Em nói được lời chào, các số và tên tiếng Trung của mình."],["能说出家人称呼和房间名称","I can name family members and rooms in a house.","Em nói được cách gọi người trong gia đình và tên các phòng."],["能认读时间（几点几分）、星期和日期","I can read the time (hours and minutes), days and dates.","Em đọc được giờ (giờ và phút), thứ và ngày tháng."],["能说出学校设施、科目和文具","I can name school places, subjects and stationery.","Em nói được tên các nơi trong trường, các môn học và đồ dùng học tập."]];
+const WMAP=[{"cd":[["能说出问候语、数字和自己的中文名字","I can say greetings, numbers and my Chinese name.","Em nói được lời chào, các số và tên tiếng Trung của mình."],["能问答姓名、年龄和国籍","I can ask and answer about name, age and nationality.","Em hỏi và trả lời được về tên, tuổi và quốc tịch."],["能用 3–5 句话介绍自己或朋友","I can introduce myself or a friend in 3–5 sentences.","Em giới thiệu được bản thân hoặc bạn bè bằng 3–5 câu."]],"L":[[["你好","nǐ hǎo","hello","xin chào"],["再见","zàijiàn","goodbye","tạm biệt"],["谢谢","xièxie","thank you","cảm ơn"],["我","wǒ","I; me","tôi; mình"],["你","nǐ","you","bạn"],["他／她","tā","he / she","anh ấy / cô ấy"],["名字","míngzi","name","tên"],["一","yī","one","một"],["二","èr","two","hai"],["三","sān","three","ba"],["四","sì","four","bốn"],["五","wǔ","five","năm"],["六","liù","six","sáu"],["七","qī","seven","bảy"],["八","bā","eight","tám"],["九","jiǔ","nine","chín"],["十","shí","ten","mười"],["中国","Zhōngguó","China","Trung Quốc"],["越南","Yuènán","Vietnam","Việt Nam"],["我们","wǒmen","we; us","chúng mình"],["你们","nǐmen","you (plural)","các bạn"],["他们","tāmen","they (boys / mixed)","họ (các bạn nam)"],["她们","tāmen","they (girls)","họ (các bạn nữ)"],["大家","dàjiā","everyone","mọi người"],["您","nín","you (polite)","ông / bà (lịch sự)"],["男","nán","male","nam"],["女","nǚ","female","nữ"],["先生","xiānsheng","Mr.; sir","ông; ngài"],["女士","nǚshì","Ms.; madam","bà; quý cô"],["零","líng","zero","số không"],["对不起","duìbuqǐ","sorry","xin lỗi"],["没关系","méi guānxi","it doesn't matter","không sao"],["不客气","bú kèqi","you're welcome","không có gì"],["喂","wéi","hello (on the phone)","a lô"],["好","hǎo","good; well","tốt; khỏe"]],[["叫","jiào","to be called","tên là"],["什么","shénme","what","gì"],["几","jǐ","how many","mấy"],["岁","suì","years old","tuổi"],["哪","nǎ","which","nào"],["国","guó","country","nước"],["人","rén","person","người"],["是","shì","to be","là"],["男朋友","nán péngyou","boyfriend","bạn trai"],["女朋友","nǚ péngyou","girlfriend","bạn gái"],["小朋友","xiǎopéngyǒu","child; kid","bạn nhỏ"],["见","jiàn","to see; to meet","gặp"],["哪里","nǎlǐ","where","ở đâu"],["再","zài","again","lại; nữa","f"],["呢","ne","(question word: …and you?)","còn … thì sao?","f"],["吗","ma","(yes/no question word)","không? (từ hỏi)","f"]],[["朋友","péngyou","friend","bạn bè"],["喜欢","xǐhuan","to like","thích"],["也","yě","also","cũng"],["很","hěn","very","rất"],["高兴","gāoxìng","happy","vui"],["认识","rènshi","to know (someone)","quen biết"],["觉得","juéde","to think; to feel","thấy; cảm thấy"],["都","dōu","all; both","đều","f"],["真","zhēn","really","thật","f"],["非常","fēicháng","very; extremely","rất; vô cùng","f"],["爱","ài","to love","yêu"],["的","de","('s; possessive / describing)","của","f"]]]},{"cd":[["能说出家人称呼和房间名称","I can name family members and rooms in a house.","Em nói được cách gọi người trong gia đình và tên các phòng."],["能交流家里有几口人、家人在哪个房间","I can talk about how many people are in my family and where they are.","Em nói được nhà có mấy người và mọi người đang ở phòng nào."],["能简单描述自己的家或家人的样子","I can describe my home or what my family members look like.","Em tả đơn giản được ngôi nhà hoặc ngoại hình người thân."]],"L":[[["家","jiā","home; family","nhà; gia đình"],["爸爸","bàba","dad","bố"],["妈妈","māma","mum","mẹ"],["哥哥","gēge","older brother","anh trai"],["姐姐","jiějie","older sister","chị gái"],["弟弟","dìdi","younger brother","em trai"],["妹妹","mèimei","younger sister","em gái"],["房间","fángjiān","room","phòng"],["客厅","kètīng","living room","phòng khách"],["厨房","chúfáng","kitchen","nhà bếp"],["卧室","wòshì","bedroom","phòng ngủ"],["家人","jiārén","family members","người nhà"],["儿子","érzi","son","con trai"],["女儿","nǚ'ér","daughter","con gái"],["孩子","háizi","child","đứa trẻ; con"],["桌子","zhuōzi","table; desk","cái bàn"],["椅子","yǐzi","chair","cái ghế"],["狗","gǒu","dog","con chó"],["猫","māo","cat","con mèo"],["东西","dōngxi","thing; stuff","đồ vật"]],[["有","yǒu","to have","có"],["没有","méiyǒu","not have","không có"],["口","kǒu","(measure word for family members)","(lượng từ đếm người trong nhà)"],["在","zài","to be at","ở"],["哪儿","nǎr","where","ở đâu"],["谁","shéi","who","ai"],["住","zhù","to live (somewhere)","sống; ở"],["里","lǐ","inside","bên trong"],["这儿","zhèr","here","ở đây"],["那儿","nàr","there","ở đó"],["这里","zhèlǐ","here","ở đây"],["那里","nàlǐ","there","ở đó"],["这边","zhèbiān","this side; over here","bên này"],["那边","nàbiān","that side; over there","bên kia"],["那","nà","that","kia; đó","f"],["那个","nàge","that one","cái đó","f"],["这些","zhèxiē","these","những … này","f"],["那些","nàxiē","those","những … kia","f"],["哪个","nǎge","which one","cái nào","f"],["哪些","nǎxiē","which ones","những cái nào","f"],["个","gè","(general measure word)","cái; chiếc"],["它","tā","it","nó"],["它们","tāmen","they (animals, things)","chúng nó"],["这","zhè","this","này; đây","f"],["这个","zhège","this one","cái này","f"]],[["大","dà","big","to"],["小","xiǎo","small","nhỏ"],["高","gāo","tall","cao"],["矮","ǎi","short","thấp"],["头发","tóufa","hair","tóc"],["长","cháng","long","dài"],["漂亮","piàoliang","pretty","đẹp"],["和","hé","and","và"],["还","hái","also; still","còn; vẫn","f"],["只","zhǐ","only","chỉ","f"],["有的","yǒude","some (of them)","có cái; có người","f"],["有些","yǒuxiē","some","một số","f"],["一些","yìxiē","some; a few","một vài","f"]]]},{"cd":[["能认读时间（几点几分）、星期和日期","I can read the time (hours and minutes), days and dates.","Em đọc được giờ (giờ và phút), thứ và ngày tháng."],["能问几点了，说出某个时间在做什么","I can ask the time and say what I do at a certain time.","Em hỏi được mấy giờ và nói mình làm gì lúc đó."],["能按顺序说出自己一天的作息","I can describe my day in order.","Em kể được một ngày của mình theo thứ tự."]],"L":[[["点","diǎn","o'clock","giờ"],["分","fēn","minute","phút"],["今天","jīntiān","today","hôm nay"],["明天","míngtiān","tomorrow","ngày mai"],["昨天","zuótiān","yesterday","hôm qua"],["星期一","xīngqīyī","Monday","thứ Hai"],["星期天","xīngqītiān","Sunday","Chủ nhật"],["月","yuè","month","tháng"],["号","hào","date (day)","ngày"],["早上","zǎoshang","morning","buổi sáng"],["晚上","wǎnshang","evening","buổi tối"],["上午","shàngwǔ","morning (before noon)","buổi sáng"],["年","nián","year","năm"],["今年","jīnnián","this year","năm nay"],["去年","qùnián","last year","năm ngoái"],["明年","míngnián","next year","năm sau"],["日","rì","day; date","ngày"],["星期日","xīngqīrì","Sunday","Chủ nhật"],["半","bàn","half","rưỡi; một nửa"],["小时","xiǎoshí","hour","tiếng; giờ đồng hồ"],["分钟","fēnzhōng","minute (duration)","phút"],["白天","báitiān","daytime","ban ngày"],["晚饭","wǎnfàn","dinner","bữa tối"],["时间","shíjiān","time","thời gian"],["天","tiān","day","ngày"],["星期","xīngqī","week","tuần"]],[["现在","xiànzài","now","bây giờ"],["几点","jǐ diǎn","what time","mấy giờ"],["起床","qǐchuáng","to get up","thức dậy"],["吃饭","chīfàn","to eat a meal","ăn cơm"],["上学","shàngxué","to go to school","đi học"],["睡觉","shuìjiào","to sleep","đi ngủ"],["做","zuò","to do","làm"],["晚","wǎn","late","muộn"],["忙","máng","busy","bận"],["上班","shàngbān","to go to work","đi làm"],["下班","xiàbān","to finish work","tan làm"],["回","huí","to return","về"],["做饭","zuòfàn","to cook","nấu cơm"],["正在","zhèngzài","(doing) right now","đang","f"],["早","zǎo","early","sớm"],["睡","shuì","to sleep","ngủ"]],[["先","xiān","first","trước tiên"],["然后","ránhòu","then","sau đó"],["以后","yǐhòu","after","sau khi"],["每天","měitiān","every day","mỗi ngày"],["中午","zhōngwǔ","noon","buổi trưa"],["下午","xiàwǔ","afternoon","buổi chiều"],["一半","yíbàn","half","một nửa"],["一下","yíxià","(do) a little; a moment","một chút","f"]]]},{"cd":[["能说出学校设施、科目和文具","I can name school places, subjects and stationery.","Em nói được tên các nơi trong trường, các môn học và đồ dùng học tập."],["能说喜欢哪门课，听懂老师的基本指令","I can say which subjects I like and understand basic classroom instructions.","Em nói được mình thích môn nào và hiểu các yêu cầu đơn giản của cô giáo."],["能简单介绍自己的学校生活","I can talk about my school life, including how I get to school.","Em giới thiệu đơn giản được cuộc sống ở trường, kể cả cách đi học."]],"L":[[["学校","xuéxiào","school","trường học"],["教室","jiàoshì","classroom","phòng học"],["老师","lǎoshī","teacher","giáo viên"],["同学","tóngxué","classmate","bạn cùng lớp"],["书","shū","book","sách"],["笔","bǐ","pen","bút"],["本子","běnzi","notebook","vở"],["书包","shūbāo","schoolbag","cặp sách"],["中文","Zhōngwén","Chinese","tiếng Trung"],["英文","Yīngwén","English","tiếng Anh"],["数学","shùxué","maths","toán"],["学生","xuésheng","student","học sinh"],["小学","xiǎoxué","primary school","trường tiểu học"],["中学","zhōngxué","secondary school","trường trung học"],["大学","dàxué","university","trường đại học"],["小学生","xiǎoxuéshēng","primary pupil","học sinh tiểu học"],["中学生","zhōngxuéshēng","secondary student","học sinh trung học"],["大学生","dàxuéshēng","university student","sinh viên"],["汉字","Hànzì","Chinese character","chữ Hán"],["汉语","Hànyǔ","Chinese language","tiếng Hán"],["字","zì","character; word","chữ"]],[["喜欢","xǐhuan","to like","thích"],["不喜欢","bù xǐhuan","not like","không thích"],["课","kè","class; lesson","tiết học; môn"],["请","qǐng","please","xin mời"],["听","tīng","to listen","nghe"],["说","shuō","to speak","nói"],["看","kàn","to look; to read","nhìn; xem"],["写","xiě","to write","viết"],["上课","shàngkè","to start class","vào học"],["下课","xiàkè","to finish class","tan học"],["学习","xuéxí","to study","học tập"],["读","dú","to read (aloud)","đọc"],["读书","dúshū","to read; to study","đọc sách; đi học"],["本","běn","(measure word for books)","quyển"],["第","dì","(ordinal: No.)","thứ","f"],["知道","zhīdao","to know","biết"],["说话","shuōhuà","to speak; to talk","nói chuyện"],["问题","wèntí","question; problem","câu hỏi; vấn đề"],["能","néng","can; be able to","có thể"],["学","xué","to learn","học"],["问","wèn","to ask","hỏi"]],[["坐","zuò","to take (a vehicle)","đi (xe)"],["校车","xiàochē","school bus","xe buýt trường"],["走路","zǒulù","to walk","đi bộ"],["最","zuì","most","nhất"],["有意思","yǒu yìsi","interesting","thú vị"],["因为……所以……","yīnwèi… suǒyǐ…","because… so…","vì… nên…"],["对","duì","correct; right","đúng"]]]},{"cd":[["能说出常见水果、蔬菜、饮料和饭菜","I can name common fruits, vegetables, drinks and dishes.","Em nói được tên các loại trái cây, rau, đồ uống và món ăn quen thuộc."],["能用“要/想”点餐并问价钱","I can order food with 要/想 and ask the price.","Em gọi món được bằng 要/想 và hỏi giá."],["能评价味道，说出一顿饭吃了什么","I can say how food tastes and what I ate for a meal.","Em nhận xét được vị món ăn và kể bữa ăn đã ăn gì."]],"L":[[["水","shuǐ","water","nước"],["牛奶","niúnǎi","milk","sữa"],["果汁","guǒzhī","juice","nước ép"],["米饭","mǐfàn","rice","cơm"],["面条","miàntiáo","noodles","mì"],["鸡蛋","jīdàn","egg","trứng"],["苹果","píngguǒ","apple","táo"],["香蕉","xiāngjiāo","banana","chuối"],["菜","cài","vegetable; dish","rau; món ăn"],["饺子","jiǎozi","dumplings","bánh sủi cảo"],["包子","bāozi","steamed bun","bánh bao"],["面包","miànbāo","bread","bánh mì"],["水果","shuǐguǒ","fruit","hoa quả"],["茶","chá","tea","trà"],["杯子","bēizi","cup; glass","cái cốc"],["饭店","fàndiàn","restaurant; hotel","nhà hàng; khách sạn"],["饭","fàn","meal; cooked rice","cơm; bữa ăn"]],[["吃","chī","to eat","ăn"],["喝","hē","to drink","uống"],["要","yào","to want","muốn"],["想","xiǎng","would like","muốn"],["多少钱","duōshao qián","how much (money)","bao nhiêu tiền"],["块","kuài","(unit of money)","(đơn vị tiền)"],["杯","bēi","cup (measure word)","cốc; ly"],["买","mǎi","to buy","mua"],["卖","mài","to sell","bán"],["元","yuán","yuan (money)","đồng (tiền)"],["百","bǎi","hundred","trăm"],["千","qiān","thousand","nghìn"],["两","liǎng","two (before a measure word)","hai"],["给","gěi","to give; for","cho"],["多少","duōshao","how many; how much","bao nhiêu"],["钱","qián","money","tiền"]],[["好吃","hǎochī","tasty (food)","ngon"],["好喝","hǎohē","tasty (drink)","ngon (đồ uống)"],["甜","tián","sweet","ngọt"],["辣","là","spicy","cay"],["饿","è","hungry","đói"],["饱","bǎo","full","no"],["早饭","zǎofàn","breakfast","bữa sáng"],["午饭","wǔfàn","lunch","bữa trưa"],["不要","búyào","don't; don't want","đừng; không muốn","f"],["少","shǎo","few; little","ít"]]]},{"cd":[["能说出常见运动和活动","I can name common sports and activities.","Em nói được tên các môn thể thao và hoạt động quen thuộc."],["能问朋友的爱好，说自己会/不会做什么","I can ask about a friend's hobbies and say what I can or can't do.","Em hỏi được sở thích của bạn và nói mình biết/không biết làm gì."],["能说周末计划或邀请朋友一起活动","I can talk about weekend plans or invite a friend to do something.","Em nói được kế hoạch cuối tuần hoặc rủ bạn cùng chơi."]],"L":[[["足球","zúqiú","football","bóng đá"],["篮球","lánqiú","basketball","bóng rổ"],["游泳","yóuyǒng","to swim","bơi"],["跑步","pǎobù","to run","chạy bộ"],["画画","huà huà","to draw","vẽ tranh"],["唱歌","chànggē","to sing","hát"],["跳舞","tiàowǔ","to dance","nhảy múa"],["看书","kàn shū","to read","đọc sách"],["玩游戏","wán yóuxì","to play games","chơi trò chơi"],["看电视","kàn diànshì","to watch TV","xem tivi"],["歌","gē","song","bài hát"],["电影","diànyǐng","film; movie","phim"],["电视","diànshì","TV","ti vi"],["电脑","diànnǎo","computer","máy tính"],["手机","shǒujī","mobile phone","điện thoại di động"],["电话","diànhuà","telephone","điện thoại"]],[["爱好","àihào","hobby","sở thích"],["会","huì","can (a skill)","biết (làm)"],["不会","bú huì","cannot","không biết"],["踢","tī","to kick","đá"],["打","dǎ","to play (ball)","chơi; đánh"],["玩","wán","to play","chơi"],["唱","chàng","to sing","hát"],["打电话","dǎ diànhuà","to make a phone call","gọi điện thoại"],["看见","kànjiàn","to see","nhìn thấy"],["听见","tīngjiàn","to hear","nghe thấy"],["电影院","diànyǐngyuàn","cinema","rạp chiếu phim"]],[["周末","zhōumò","weekend","cuối tuần"],["一起","yìqǐ","together","cùng nhau"],["吧","ba","(suggestion: let's)","nhé"],["可以","kěyǐ","can; may","có thể"],["常常","chángcháng","often","thường"],["和","hé","with; and","với; và"],["好玩儿","hǎowánr","fun","vui; hay"],["好看","hǎokàn","good-looking; good to watch","đẹp; hay"],["好听","hǎotīng","nice to listen to","hay (nghe)"]]]},{"cd":[["能说出颜色和日常衣服","I can name colours and everyday clothes.","Em nói được tên màu sắc và quần áo hằng ngày."],["能说某人今天穿了什么颜色的衣服","I can say what colour clothes someone is wearing today.","Em nói được hôm nay ai đó mặc quần áo màu gì."],["能进行买衣服的对话（大小、颜色、价钱）","I can have a shopping conversation about size, colour and price.","Em hội thoại được khi mua quần áo (cỡ, màu, giá)."]],"L":[[["衣服","yīfu","clothes","quần áo"],["裤子","kùzi","trousers","quần"],["裙子","qúnzi","skirt","váy"],["鞋","xié","shoes","giày"],["帽子","màozi","hat","mũ"],["红色","hóngsè","red","màu đỏ"],["蓝色","lánsè","blue","màu xanh dương"],["黄色","huángsè","yellow","màu vàng"],["绿色","lǜsè","green","màu xanh lá"],["白色","báisè","white","màu trắng"],["黑色","hēisè","black","màu đen"]],[["穿","chuān","to wear","mặc"],["颜色","yánsè","colour","màu sắc"],["件","jiàn","(measure word for tops)","chiếc (áo)"],["条","tiáo","(measure word for trousers, skirts)","chiếc (quần, váy)"],["双","shuāng","pair","đôi"],["新","xīn","new","mới"]],[["贵","guì","expensive","đắt"],["便宜","piányi","cheap","rẻ"],["试试","shìshi","to try on","thử"],["太……了","tài… le","too …","quá"],["一点儿","yìdiǎnr","a little","một chút"]]]},{"cd":[["能认读天气词和季节名称","I can read weather words and the names of seasons.","Em đọc được từ chỉ thời tiết và tên các mùa."],["能问答今天、明天的天气","I can ask and answer about today's and tomorrow's weather.","Em hỏi và trả lời được về thời tiết hôm nay, ngày mai."],["能比较不同季节，建议适合的活动","I can compare seasons and suggest activities for the weather.","Em so sánh được các mùa và gợi ý hoạt động phù hợp."]],"L":[[["天气","tiānqì","weather","thời tiết"],["晴天","qíngtiān","sunny day","trời nắng"],["下雨","xià yǔ","to rain","mưa"],["下雪","xià xuě","to snow","tuyết rơi"],["刮风","guā fēng","windy","có gió"],["热","rè","hot","nóng"],["冷","lěng","cold","lạnh"],["春天","chūntiān","spring","mùa xuân"],["夏天","xiàtiān","summer","mùa hè"],["秋天","qiūtiān","autumn","mùa thu"],["冬天","dōngtiān","winter","mùa đông"],["雪","xuě","snow","tuyết"],["雨","yǔ","rain","mưa"]],[["怎么样","zěnmeyàng","how is it","thế nào"],["会","huì","will (probably)","sẽ"],["度","dù","degree","độ"],["有一点儿","yǒu yìdiǎnr","a bit","hơi"],["有点儿","yǒudiǎnr","a bit (too)","hơi","f"]],[["比","bǐ","than (comparing)","hơn"],["最","zuì","most","nhất"],["季节","jìjié","season","mùa"],["时候","shíhou","time; when","lúc; khi"],["不……也不……","bù… yě bù…","neither… nor…","không… cũng không…"]]]},{"cd":[["能说出交通工具和上下左右","I can name vehicles and say up, down, left and right.","Em nói được tên các phương tiện và trên, dưới, trái, phải."],["能问“怎么去”，用坐/骑/开说出行方式","I can ask how to get somewhere and answer with 坐/骑/开.","Em hỏi được “đi thế nào” và trả lời bằng 坐/骑/开."],["能用“先……然后……”说路线或旅行计划","I can describe a route or trip with 先……然后…….","Em kể được đường đi hoặc kế hoạch du lịch bằng 先……然后……."]],"L":[[["公共汽车","gōnggòng qìchē","bus","xe buýt"],["出租车","chūzūchē","taxi","taxi"],["地铁","dìtiě","subway","tàu điện ngầm"],["飞机","fēijī","plane","máy bay"],["火车","huǒchē","train","tàu hỏa"],["自行车","zìxíngchē","bicycle","xe đạp"],["摩托车","mótuōchē","motorbike","xe máy"],["上","shàng","up; on","trên"],["下","xià","down; under","dưới"],["左","zuǒ","left","trái"],["右","yòu","right","phải"],["外","wài","outside","ngoài"],["外边","wàibian","outside","bên ngoài"],["前","qián","front; before","trước"],["后","hòu","back; after","sau"],["车","chē","vehicle; car","xe"]],[["去","qù","to go","đi"],["怎么","zěnme","how","thế nào"],["坐","zuò","to take (a vehicle)","đi (xe, tàu)"],["骑","qí","to ride","đi (xe đạp, xe máy)"],["开车","kāichē","to drive","lái xe"],["远","yuǎn","far","xa"],["近","jìn","near","gần"],["来","lái","to come","đến"],["开","kāi","to drive; to open","lái; mở"]],[["往","wǎng","towards","về phía"],["走","zǒu","to walk; to go","đi"],["到","dào","to arrive","đến"],["一直","yìzhí","straight on","thẳng"],["旅行","lǚxíng","to travel","du lịch"],["放假","fàngjià","to be on holiday","nghỉ lễ"]]]},{"cd":[["能说出身体部位和医院、商店等地方","I can name body parts and places like the hospital and shop.","Em nói được tên các bộ phận cơ thể và nơi như bệnh viện, cửa hàng."],["能说哪里不舒服，问某个地方在哪儿","I can say where it hurts and ask where a place is.","Em nói được mình đau ở đâu và hỏi một nơi ở đâu."],["能给简单的健康建议或指路","I can give simple health advice or directions.","Em đưa ra được lời khuyên sức khỏe đơn giản hoặc chỉ đường."]],"L":[[["头","tóu","head","đầu"],["手","shǒu","hand","tay"],["脚","jiǎo","foot","bàn chân"],["眼睛","yǎnjing","eyes","mắt"],["肚子","dùzi","tummy","bụng"],["医院","yīyuàn","hospital","bệnh viện"],["商店","shāngdiàn","shop","cửa hàng"],["超市","chāoshì","supermarket","siêu thị"],["公园","gōngyuán","park","công viên"],["饭馆","fànguǎn","restaurant","nhà hàng"],["店","diàn","shop","cửa hàng"],["书店","shūdiàn","bookshop","hiệu sách"],["公司","gōngsī","company","công ty"]],[["疼","téng","to hurt","đau"],["舒服","shūfu","comfortable; well","dễ chịu; khỏe"],["生病","shēngbìng","to be ill","bị ốm"],["医生","yīshēng","doctor","bác sĩ"],["请问","qǐngwèn","excuse me (may I ask)","xin hỏi"],["病","bìng","illness; ill","bệnh; ốm"],["看病","kànbìng","to see a doctor","đi khám bệnh"],["找","zhǎo","to look for","tìm"],["事","shì","matter; thing","việc"],["没事","méishì","it's nothing; I'm fine","không sao"]],[["应该","yīnggāi","should","nên"],["休息","xiūxi","to rest","nghỉ ngơi"],["多","duō","more","nhiều (hơn)"],["前面","qiánmian","in front","phía trước"],["旁边","pángbiān","beside","bên cạnh"],["对面","duìmiàn","opposite","đối diện"],["工作","gōngzuò","work; to work","công việc; làm việc"]]]}];
+const THEMES=[["个人与社交", "Me & Friends", "Bản thân và bạn bè"], ["家庭与住房", "Family & Home", "Gia đình và nhà ở"], ["时间与日常", "Time & Daily Routine", "Thời gian và sinh hoạt hằng ngày"], ["学校与学习", "School & Learning", "Trường học và học tập"], ["饮食与用餐", "Food & Meals", "Ăn uống"], ["爱好与运动", "Hobbies & Sports", "Sở thích và thể thao"], ["服装与颜色", "Clothes & Colours", "Quần áo và màu sắc"], ["天气与季节", "Weather & Seasons", "Thời tiết và các mùa"], ["交通与旅行", "Transport & Travel", "Giao thông và du lịch"], ["健康与社区", "Health & Community", "Sức khỏe và khu phố"]];
+const L1CD=[["能说出问候语、数字和自己的中文名字", "I can say greetings, numbers and my Chinese name.", "Em nói được lời chào, các số và tên tiếng Trung của mình."], ["能说出家人称呼和房间名称", "I can name family members and rooms in a house.", "Em nói được cách gọi người trong gia đình và tên các phòng."], ["能认读时间（几点几分）、星期和日期", "I can read the time (hours and minutes), days and dates.", "Em đọc được giờ (giờ và phút), thứ và ngày tháng."], ["能说出学校设施、科目和文具", "I can name school places, subjects and stationery.", "Em nói được tên các nơi trong trường, các môn học và đồ dùng học tập."], ["能说出常见水果、蔬菜、饮料和饭菜", "I can name common fruits, vegetables, drinks and dishes.", "Em nói được tên các loại trái cây, rau, đồ uống và món ăn quen thuộc."], ["能说出常见运动和活动", "I can name common sports and activities.", "Em nói được tên các môn thể thao và hoạt động quen thuộc."], ["能说出颜色和日常衣服", "I can name colours and everyday clothes.", "Em nói được tên màu sắc và quần áo hằng ngày."], ["能认读天气词和季节名称", "I can read weather words and the names of seasons.", "Em đọc được từ chỉ thời tiết và tên các mùa."], ["能说出交通工具和上下左右", "I can name vehicles and say up, down, left and right.", "Em nói được tên các phương tiện và trên, dưới, trái, phải."], ["能说出身体部位和医院、商店等地方", "I can name body parts and places like the hospital and shop.", "Em nói được tên các bộ phận cơ thể và nơi như bệnh viện, cửa hàng."]];
 const LVL=[["Level 1 · 说出名称","Level 1 · Naming","Cấp 1 · Gọi tên"],["Level 2 · 问答交流","Level 2 · Asking & answering","Cấp 2 · Hỏi đáp"],["Level 3 · 连贯描述","Level 3 · Describing","Cấp 3 · Miêu tả"]];
 const tName=ti=>THEMES[ti][LI()];
 const lvName=l=>LVL[l-1][LI()];
@@ -237,6 +414,7 @@ const lvName=l=>LVL[l-1][LI()];
 const $=id=>document.getElementById(id);
 const store={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 let lang=store.get("lxs-lang","en"), py=store.get("lxs-py","1")==="1";
+let view=location.hash==="#words"?"words":store.get("lxs-view","sent"), wsel=null, wflip=new Set(), worder=null;
 let run=null; // {si, order:[], i, items:[{tries, first, shown, ok}], tray:[], bankOrder:[], state}
 const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -250,7 +428,10 @@ $("who").addEventListener("input",()=>store.set("lxs-name",$("who").value.trim()
 document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lang=b.dataset.l;store.set("lxs-lang",lang);syncTop();render()});
 $("pyOn").onclick=()=>{py=true;store.set("lxs-py","1");syncTop()};
 $("pyOff").onclick=()=>{py=false;store.set("lxs-py","0");syncTop()};
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{view=b.dataset.v;store.set("lxs-view",view);try{history.replaceState(null,"",view==="words"?"#words":location.pathname+location.search)}catch(e){}syncTop();render();window.scrollTo({top:0})});
 function syncTop(){
+  document.querySelectorAll("[data-v]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.v===view)));
+  $("ttl").textContent=view==="words"?"生词卡":"句子练习";
   document.querySelectorAll("[data-l]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
   $("pyOn").setAttribute("aria-pressed",String(py));$("pyOff").setAttribute("aria-pressed",String(!py));
   document.body.classList.toggle("nopy",!py);
@@ -259,6 +440,7 @@ const LI=()=>lang==="vi"?2:1;
 
 function render(){
   const app=$("app");
+  if(view==="words"){wsel?renderCards(app):renderWordMap(app);return}
   if(!run){renderPicker(app);return}
   if(run.i<run.order.length){renderQ(app);return}
   renderResult(app);
@@ -269,14 +451,54 @@ function renderPicker(app){
   <div class="scroll"><table class="sets"><thead><tr><th>${lang==="vi"?"Chủ đề":"Theme"}</th>${[1,2,3].map(l=>`<th>${lvName(l)}</th>`).join("")}</tr></thead><tbody>`;
   THEMES.forEach((T,ti)=>{
     h+=`<tr><td class="tn">${ti+1}. ${tName(ti)}<div class="note" style="font-weight:400">${T[0]}</div></td>`;
-    h+=`<td><div class="setbtn l1" aria-disabled="true"><b>Quizlet</b><span>${L1CD[ti][LI()]}</span></div></td>`;
+    h+=`<td><button class="setbtn l1" data-wt="${ti}"><b>${lang==="vi"?"Thẻ từ":"Word cards"} · ${WMAP[ti].L[0].length}</b><span>${L1CD[ti][LI()]}</span></button></td>`;
     [2,3].forEach(l=>{const si=SETS.findIndex(s=>s.t===ti+1&&s.l===l),S=SETS[si],d=store.get(doneKey(si),"");
       h+=`<td><button class="setbtn" data-si="${si}"><b>${S.q.length} ${lang==="vi"?"câu":"sentences"}</b><span>${S.cd[LI()]}</span>${d?`<span class="done">✓ ${esc(d)}</span>`:""}</button></td>`});
     h+=`</tr>`;
   });
-  h+=`</tbody></table></div><p class="note">${lang==="vi"?"Cấp 1 là từ vựng, luyện trên Quizlet.":"Level 1 is vocabulary — practise it on Quizlet."}</p></section>`;
+  h+=`</tbody></table></div><p class="note">${lang==="vi"?"Cấp 1 là từ vựng: học bằng thẻ từ (hoặc Quizlet).":"Level 1 is vocabulary: learn it with the word cards (or Quizlet)."}</p></section>`;
   app.innerHTML=h;
+  app.querySelectorAll("[data-wt]").forEach(b=>b.onclick=()=>{view="words";store.set("lxs-view",view);syncTop();openCards(+b.dataset.wt,1)});
   app.querySelectorAll("[data-si]").forEach(b=>b.onclick=()=>start(+b.dataset.si));
+}
+function renderWordMap(app){
+  const vi=lang==="vi";
+  let h=`<section class="panel"><h2>选一组生词 · ${vi?"Chọn một bộ từ":"Choose a word set"}</h2>
+  <p class="note">${vi?"Nhìn chữ Hán, thử đọc to. Chạm vào thẻ để lật: nghe phát âm và xem nghĩa tiếng Anh, tiếng Việt.":"Look at the characters and try to say the word. Tap a card to flip it: hear it and see the English and Vietnamese meaning."}</p>
+  <div class="scroll"><table class="sets"><thead><tr><th>${vi?"Chủ đề":"Theme"}</th>${[1,2,3].map(l=>`<th>${lvName(l)}</th>`).join("")}</tr></thead><tbody>`;
+  THEMES.forEach((T,ti)=>{
+    h+=`<tr><td class="tn">${ti+1}. ${tName(ti)}<div class="note" style="font-weight:400">${T[0]}</div></td>`;
+    [1,2,3].forEach(l=>{const ws=WMAP[ti].L[l-1];
+      h+=`<td><button class="setbtn" data-wt="${ti}" data-wl="${l}"><b>${ws.length} ${vi?"từ":"words"}</b><span class="wl">${esc(ws.slice(0,5).map(w=>w[0]).join("、"))}…</span><span>${esc(WMAP[ti].cd[l-1][LI()])}</span></button></td>`});
+    h+=`</tr>`;
+  });
+  h+=`</tbody></table></div></section>`;
+  app.innerHTML=h;
+  app.querySelectorAll("[data-wl]").forEach(b=>b.onclick=()=>openCards(+b.dataset.wt,+b.dataset.wl));
+}
+function openCards(ti,l){wsel={ti,l};wflip=new Set();worder=WMAP[ti].L[l-1].map((_,i)=>i);render();window.scrollTo({top:0,behavior:"smooth"})}
+const sayWord=h=>say(h.replace(/／/g,"，"));
+function renderCards(app){
+  const vi=lang==="vi",{ti,l}=wsel,ws=WMAP[ti].L[l-1];
+  app.innerHTML=`<section class="panel">
+    <div class="qhead"><h2>${ti+1}. ${tName(ti)} · ${lvName(l)}</h2><span class="pill">${ws.length} ${vi?"từ":"words"}</span></div>
+    <p class="note">${esc(WMAP[ti].cd[l-1][LI()])}</p>
+    <div class="cardbar"><div><button class="btn" id="wBack">← ${vi?"Quay lại":"Back"}</button></div>
+      <div><button class="btn" id="wMix">${vi?"Xáo trộn":"Shuffle"}</button><button class="btn" id="wAll">${vi?"Lật hết":"Flip all"}</button><button class="btn" id="wNone">${vi?"Úp hết":"Hide all"}</button></div></div>
+    <div class="cards">${worder.map(i=>{const [h,p,en,v,f]=ws[i],a=vi?v:en,b2=vi?en:v;
+      return `<button class="card${wflip.has(i)?" on":""}" data-wi="${i}" aria-pressed="${wflip.has(i)}" aria-label="${esc(h)}"><span class="in">
+        <span class="fc fr">${f?`<span class="fw">${vi?"từ chức năng":"function word"}</span>`:""}<span class="h">${esc(h)}</span><span class="p">${esc(p)}</span></span>
+        <span class="fc bk"><span class="snd" aria-hidden="true">🔊</span><span class="h">${esc(h)}</span><span class="p">${esc(p)}</span><span class="m">${esc(a)}</span><span class="m2">${esc(b2)}</span></span>
+      </span></button>`}).join("")}</div>
+    ${"speechSynthesis" in window?"":`<p class="note">${vi?"Trình duyệt này không phát được âm thanh.":"This browser can't play the sound."}</p>`}
+  </section>`;
+  $("wBack").onclick=()=>{wsel=null;render()};
+  $("wMix").onclick=()=>{worder=shuffle(worder);render()};
+  $("wAll").onclick=()=>{ws.forEach((_,i)=>wflip.add(i));render()};
+  $("wNone").onclick=()=>{wflip.clear();render()};
+  app.querySelectorAll("[data-wi]").forEach(c=>c.onclick=()=>{const i=+c.dataset.wi,on=!wflip.has(i);
+    if(on){wflip.add(i);sayWord(ws[i][0])}else wflip.delete(i);
+    c.classList.toggle("on",on);c.setAttribute("aria-pressed",String(on))});
 }
 function start(si){
   const S=SETS[si];
