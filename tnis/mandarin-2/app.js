@@ -315,10 +315,10 @@ document.addEventListener("click", (ev) => {
 });
 
 // ───────── progress ─────────
-// pending: entry ID for a separate "Words still settling" question. Empty = both lists go into the practise field.
+// practise = both lists in one line; wrong / pending = separate "Wrong" and "Settling" questions (leave empty if the form has none).
 // Google Form (TNIS - Mandarin II - Map response). Email is collected by the form itself.
 const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdt7wE3ZQj08PjTeTSLUEbONj93_-Kc1NmGLZy-MzDcER0c8Q/viewform";
-const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", pending: "" };
+const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", wrong: "entry.1650655630", pending: "entry.786948827" };
 const b64e = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const b64d = (b) => { b = b.replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "="; return new TextDecoder().decode(Uint8Array.from(atob(b), (c) => c.charCodeAt(0))); };
 // Code format: "M2." + base64url("2|day|streak|reviews|lastDay|<hanzi><b>…|<grammarId>=<b>,…")
@@ -358,12 +358,9 @@ function viewProgress(msg) {
   params.set(ENTRY.stations, `${m}/${sts.length}`);
   params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
-  if (ENTRY.pending) {
-    params.set(ENTRY.practise, wrongW.join("、") || "none");
-    params.set(ENTRY.pending, settlingW.join("、") || "none");
-  } else {
-    params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Settling: ${settlingW.join("、") || "none"}`);
-  }
+  params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Settling: ${settlingW.join("、") || "none"}`);
+  if (ENTRY.wrong) params.set(ENTRY.wrong, wrongW.join("、") || "none");
+  if (ENTRY.pending) params.set(ENTRY.pending, settlingW.join("、") || "none");
   const formUrl = FORM + "?" + params.toString();
   main.innerHTML = `<section class="block"><h2>My progress</h2>
     <div class="tiles"><div class="tile"><b>${m}</b><span>/${sts.length}<br>stations mastered</span></div>
