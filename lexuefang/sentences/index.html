@@ -98,6 +98,10 @@ body.nopy .tile .p,body.nopy .ans .p{display:none}
 .rlist td{border-bottom:1px solid var(--line);padding:8px 6px;vertical-align:top}
 .rlist td.hz{font-family:var(--f-han);font-size:19px}
 .rlist .mine{display:block;font-family:var(--f-han);font-size:16px;color:var(--bad)}
+.rlist .rpy{display:block;font-family:var(--f-ui);font-size:14px;color:var(--muted)}
+.rlist .rmean{display:block;font-family:var(--f-ui);font-size:14px;color:var(--ink);margin-top:2px}
+.rlist td.act{text-align:right;white-space:nowrap}
+.rsay{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;font-size:13px;padding:3px 10px;margin-left:6px;cursor:pointer}
 .tag{font-size:12px;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .tag.first{background:var(--ok-soft);color:var(--ok)}
 .tag.retry{background:var(--accent-soft);color:var(--accent)}
@@ -147,6 +151,7 @@ body.nopy .card .fr .p{display:none}
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="../../assets/voice-tip.js"></script>
 <script>
 // tiles: [hanzi, pinyin]; alt: other correct orders (hanzi arrays)
 const SETS=[
@@ -435,6 +440,7 @@ function syncTop(){
   document.querySelectorAll("[data-l]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===lang)));
   $("pyOn").setAttribute("aria-pressed",String(py));$("pyOff").setAttribute("aria-pressed",String(!py));
   document.body.classList.toggle("nopy",!py);
+  if(window.voiceTip)voiceTip.render(lang);
 }
 const LI=()=>lang==="vi"?2:1;
 
@@ -574,7 +580,7 @@ const TAG={first:"一次就对",retry:"改了以后对",shown:"看了答案"};
 function renderResult(app){
   const S=SETS[run.si],c=counts(),name=$("who").value.trim();
   const rows=S.q.map((q,qi)=>{const x=run.items[qi],s=status(x);
-    return `<tr><td class="hz">${esc(zh(q))}${s!=="first"&&x.first?`<span class="mine">第一次 First try：${esc(x.first)}</span>`:""}</td><td><span class="tag ${s}">${TAG[s]}</span></td></tr>`}).join("");
+    return `<tr><td class="hz">${esc(zh(q))}<span class="rpy">${esc(pyOf(q))}</span><span class="rmean">${esc(lang==="vi"?q.vi:q.en)}</span>${s!=="first"&&x.first?`<span class="mine">第一次 First try：${esc(x.first)}</span>`:""}</td><td class="act"><span class="tag ${s}">${TAG[s]}</span>${"speechSynthesis" in window?`<button class="rsay" data-say="${qi}" aria-label="Listen">🔊</button>`:""}</td></tr>`}).join("");
   app.innerHTML=`<section class="panel">
     <h2>完成了！${name?esc(name)+" · ":""}${S.t}. ${tName(S.t-1)} · ${lvName(S.l)}</h2>
     <div class="score"><div><b>${c.first}</b><span>一次就对 First try</span></div><div><b>${c.retry}</b><span>改了以后对 After a retry</span></div><div><b>${c.shown}</b><span>看了答案 Answer shown</span></div></div>
@@ -584,6 +590,7 @@ function renderResult(app){
       <div><button class="btn" id="bAgain">再做一次 Try again</button><button class="btn" id="bSets">换一组 Other sets</button></div></div>
     <p class="msg" id="rMsg" aria-live="polite"></p>
   </section>`;
+  app.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>say(zh(S.q[+b.dataset.say])));
   $("bAgain").onclick=()=>start(run.si);
   $("bSets").onclick=()=>{run=null;render()};
   $("bCopy").onclick=async()=>{const t=resultText();try{await navigator.clipboard.writeText(t);setMsg("已复制，可以贴到微信、Zalo 或 WhatsApp 发给老师。Copied.")}catch(e){setMsg("没能自动复制。请截图发给老师。Please take a screenshot instead.",true)}};
