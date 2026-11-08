@@ -5,12 +5,12 @@
 // A slot with link:i always takes the same option index as slot i (i counts slots only).
 // Error items: "汉字|pinyin" strings.
 
-const CURRENT_WEEK = 13;
+const CURRENT_WEEK = 14;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
 const FOCUS = {
-  week: 13,
-  why: "Get ready to talk about your day: days of the week, times and what you do.",
+  week: 14,
+  why: "Keep your day strong: days of the week, times and what you do, ready for morning, noon and evening this week.",
   stations: ["s12", "s13", "s9"],
 };
 

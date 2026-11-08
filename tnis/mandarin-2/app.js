@@ -30,11 +30,23 @@ function grade(id, ok, hinted) {
   store.items[id] = it; save();
 }
 const known = (h) => item("w:" + h).b >= 2;
+const practised = (h) => item("w:" + h).seen > 0;
+// Everything a station asks students to master: its words, grammar items and sentences.
+const itemIds = (st) => [...stWords(st).map((h) => "w:" + h), ...grammarItems([st]).map(idOf), ...sentItems([st])];
+const knownId = (id) => item(id).b >= 2;
+const seenId = (id) => item(id).seen > 0;
 function stationStats(st) {
-  const ws = stWords(st); const k = ws.filter(known).length;
-  const seen = ws.some((h) => item("w:" + h).seen > 0);
-  return { k, n: ws.length, mastered: ws.length > 0 && k / ws.length >= 0.8, started: seen };
+  const ids = itemIds(st); const k = ids.filter(knownId).length; const p = ids.filter(seenId).length;
+  const part = (pre) => { const x = ids.filter((id) => pre.some((q) => id.startsWith(q))); return { k: x.filter(knownId).length, p: x.filter(seenId).length, n: x.length }; };
+  return { k, p, n: ids.length, mastered: ids.length > 0 && k / ids.length >= 0.8, started: p > 0, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
 }
+function allStats() {
+  const ids = [...new Set(OPEN.flatMap(itemIds))];
+  const part = (pre) => { const x = ids.filter((id) => pre.some((q) => id.startsWith(q))); return { k: x.filter(knownId).length, p: x.filter(seenId).length, n: x.length }; };
+  return { k: ids.filter(knownId).length, p: ids.filter(seenId).length, n: ids.length, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
+}
+// two-layer bar: solid = known, light = practised but not yet known
+const meter2 = (k, p, n) => `<span class="meter" role="img" aria-label="${k} learned, ${p} practised, of ${n} items"><i style="width:${n ? (k / n) * 100 : 0}%"></i><i class="pr" style="width:${n ? ((p - k) / n) * 100 : 0}%"></i></span>`;
 
 // ───────── speech (vocabulary only) ─────────
 let zhVoice = null;
@@ -104,7 +116,7 @@ function setTab(name) { document.querySelectorAll(".tab").forEach((t) => t.setAt
 
 function viewMap() {
   setTab("map");
-  const totalK = Object.keys(WORDS).filter(known).length;
+  const A = allStats();
   let html = `<section class="today">
       <div><h2>Daily review</h2>
       <p>10 quick questions, about 5 minutes. They mix this week's focus, recent lessons and last year, and bring back the words you got wrong.</p>
@@ -112,7 +124,7 @@ function viewMap() {
       <div class="today-side"><div class="stat"><b>${store.streak}</b><span>day<br>streak</span></div>
       <a class="btn primary" href="#review">Start</a></div>
     </section>
-    <p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. You know <b>${totalK}</b> of ${Object.keys(WORDS).length} words so far.</p>`;
+    <p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. You have learned <b>${A.k}</b> of ${A.n} items so far (words, grammar and sentences).</p>`;
   ZONES.forEach((z) => {
     const sts = STATIONS.filter((s) => s.zone === z.id);
     html += `<section class="line" style="--c: var(${z.color})"><h3 class="line-name"><span class="line-badge">${esc(z.name)}</span><span class="en zh">${esc(z.zh)}</span></h3><ol class="stops">`;
@@ -126,8 +138,8 @@ function viewMap() {
       const label = ss.mastered ? "Mastered" : ss.started ? "Learning" : "Not reviewed yet";
       html += `<li class="stop ${state}"><a href="#s-${s.id}"><span class="dot" aria-hidden="true"></span><div class="stop-body">
         <span class="stop-title">${esc(s.title)}</span><span class="en">${esc(s.en)} · ${esc(s.when)}</span>
-        <span class="meter" role="img" aria-label="${ss.k} of ${ss.n} words known"><i style="width:${ss.n ? (ss.k / ss.n) * 100 : 0}%"></i></span>
-        <span class="pill ${state}">${label} · ${ss.k}/${ss.n}</span></div></a></li>`;
+        ${meter2(ss.k, ss.p, ss.n)}
+        <span class="pill ${state}">${label} · ${ss.k}/${ss.n} learned${ss.p > ss.k ? ` · ${ss.p} practised` : ""}</span></div></a></li>`;
     });
     html += `</ol></section>`;
   });
@@ -151,7 +163,7 @@ function viewStation(id) {
   const ss = stationStats(s);
   let html = `<a class="back" href="#map">← Map</a>
   <header class="st-head" style="--c: var(${z.color})"><span class="line-badge">${esc(z.name)}</span>
-    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.k}/${ss.n} words known</p></header>
+    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.k}/${ss.n} learned</p></header>
   <section class="block"><h3>Words</h3>
     <p class="hint">Tap a word to see the pinyin and meaning${zhVoice ? " and hear it" : ""}.</p>
     <div class="words">${stWords(s).map(wordCard).join("")}</div>
@@ -233,9 +245,9 @@ function grammarItems(stations) {
   return out;
 }
 const idOf = (g) => (g[1] === "f" ? `f:${g[0]}:${g[2]}` : `e:${g[0]}:${g[2]}`);
-function priority(ids) { // due first, weakest first, then random
+function priority(ids) { // due first, then never-tried before tried, weakest first, then random
   const t = today();
-  return shuffle(ids).sort((a, b) => { const A = item(a), B = item(b); const da = A.d <= t ? 0 : 1, db = B.d <= t ? 0 : 1; return da - db || A.b - B.b; });
+  return shuffle(ids).sort((a, b) => { const A = item(a), B = item(b); const da = A.d <= t ? 0 : 1, db = B.d <= t ? 0 : 1; return da - db || (A.seen > 0) - (B.seen > 0) || A.b - B.b; });
 }
 function buildReview() {
   const recent = OPEN.filter((s) => s.week >= CURRENT_WEEK - 2);
@@ -248,15 +260,76 @@ function buildReview() {
   const gs = grammarItems(focus.length ? focus : OPEN); const gIds = priority(gs.map(idOf));
   const g = gs.find((x) => idOf(x) === gIds[0]);
   if (g) qs.splice(Math.floor(Math.random() * qs.length), 0, grammarQ(...g));
+  const fo = sentItems(focus); const oIds = priority(fo.length ? fo : sentItems(OPEN));
+  if (oIds.length) { // swap one word question for one sentence
+    let li = -1; qs.forEach((q, j) => { if (q.id.startsWith("w:")) li = j; });
+    if (li >= 0 && qs.length >= 10) qs.splice(li, 1);
+    qs.splice(Math.floor(Math.random() * (qs.length + 1)), 0, orderQ(oIds[0]));
+  }
   return qs;
 }
-function buildPractice(sid) {
+function buildPractice(sid) { // 5 words + 2 grammar + 3 sentences (6 words when a station has no sentences yet)
   const s = ST[sid];
-  const words = priority(stWords(s).map((h) => "w:" + h)).slice(0, 6).map((id) => wordQ(id.slice(2)));
+  const os = priority(sentItems([s])).slice(0, 3).map(orderQ);
+  const nw = os.length ? 5 : 6;
+  const wIds = priority(stWords(s).map((h) => "w:" + h));
+  const words = wIds.slice(0, nw).map((id) => wordQ(id.slice(2)));
   const gIds = priority(grammarItems([s]).map(idOf)).slice(0, 2);
   const gs = grammarItems([s]).filter((g) => gIds.includes(idOf(g))).map((g) => grammarQ(...g));
-  const extra = priority(stWords(s).map((h) => "w:" + h)).slice(6, 6 + (2 - gs.length)).map((id) => wordQ(id.slice(2)));
-  return shuffle([...words, ...gs, ...extra]);
+  const extra = wIds.slice(nw, nw + (2 - gs.length)).map((id) => wordQ(id.slice(2)));
+  return shuffle([...words, ...gs, ...extra, ...os]);
+}
+
+// ───────── sentence building (data in sentences.js) ─────────
+const SENT = typeof SENTENCES !== "undefined" ? SENTENCES : {};
+const sentItems = (stations) => stations.flatMap((s) => (SENT[s.id] || []).map((_, i) => `o:${s.id}:${i}`));
+function orderQ(id) {
+  const [, sid, i] = id.split(":"); const x = SENT[sid][+i];
+  let bank = shuffle(x.t.map((_, k) => k));
+  if (bank.length > 1 && bank.every((k, j) => k === j)) bank = bank.slice(1).concat(bank[0]);
+  return { id, type: "order", kind: "Build the sentence", en: "", x, bank, tray: [], tries: 0, opts: [], prompt: `<span class="q-en q-en-s">${esc(x.en)}</span>` };
+}
+function orderTile(tk, k, where, used) {
+  return `<button type="button" class="otile${used ? " used" : ""}" data-${where}="${k}"${used ? ' tabindex="-1" aria-hidden="true"' : ""}><span class="zh">${esc(tk[0])}</span>${tk[1] ? `<span class="opt-py">${esc(tk[1])}</span>` : ""}</button>`;
+}
+function renderOrder() {
+  const q = quiz && quiz.qs[quiz.i]; const box = $(".q-order"); if (!q || !box) return;
+  box.innerHTML = `<div class="otray${q.state ? " " + q.state : ""}">${q.tray.length ? q.tray.map((k) => orderTile(q.x.t[k], k, "tr", false)).join("") + `<span class="oend zh">${esc(q.x.e)}</span>` : '<span class="oph">Tap the words below in order.</span>'}</div>
+    <div class="obank">${q.bank.map((k) => orderTile(q.x.t[k], k, "bk", q.tray.includes(k))).join("")}</div>
+    ${q.done ? "" : `<div class="orow"><button type="button" class="btn primary small" id="ocheck"${q.tray.length === q.x.t.length ? "" : " disabled"}>Check</button><button type="button" class="btn ghost small" id="oclear"${q.tray.length ? "" : " disabled"}>Clear</button>${q.tries ? '<button type="button" class="btn ghost small" id="oshow">Show answer</button>' : ""}</div>`}`;
+}
+document.addEventListener("click", (ev) => {
+  if (!quiz) return; const q = quiz.qs[quiz.i]; if (!q || q.type !== "order" || q.done) return;
+  const bk = ev.target.closest("[data-bk]"), tr = ev.target.closest("[data-tr]");
+  if (bk) { const k = +bk.dataset.bk; if (!q.tray.includes(k)) { q.tray.push(k); q.state = ""; renderOrder(); } return; }
+  if (tr) { q.tray = q.tray.filter((k) => k !== +tr.dataset.tr); q.state = ""; renderOrder(); return; }
+  if (ev.target.id === "oclear") { q.tray = []; q.state = ""; renderOrder(); return; }
+  if (ev.target.id === "oshow") { finishOrder(false); return; }
+  if (ev.target.id === "ocheck") {
+    q.tries++;
+    const mine = q.tray.map((k) => q.x.t[k][0]).join("|");
+    const ok = [q.x.t.map((t) => t[0])].concat(q.x.alt || []).some((a) => a.join("|") === mine);
+    if (ok) { finishOrder(true); return; }
+    q.state = "bad"; renderOrder();
+    $(".q-feedback").innerHTML = `<p class="fb-no">Not quite. Change the order and check again${q.tries > 1 ? ", or show the answer" : ""}.</p>`;
+  }
+});
+function finishOrder(ok) {
+  const q = quiz.qs[quiz.i]; q.done = true;
+  const first = ok && q.tries === 1;
+  if (!ok) q.tray = q.x.t.map((_, k) => k);
+  q.state = ok ? "ok" : "shown";
+  grade(q.id, ok, q.hinted || !first);
+  const zh = q.x.t.map((t) => t[0]).join("") + q.x.e; const py = q.x.t.map((t) => t[1]).filter(Boolean).join(" ");
+  q.after = zh;
+  if (first) quiz.right++; else quiz.wrong.push(q);
+  renderOrder();
+  const hb = document.getElementById("hint"); if (hb) hb.remove();
+  const last = quiz.i === quiz.qs.length - 1;
+  $(".q-feedback").innerHTML = `${first ? '<p class="fb-ok">Correct!</p>' : ok ? '<p class="fb-ok">Correct after a retry. This one comes back tomorrow.</p>' : '<p class="fb-no">Here is the answer.</p>'}
+    <p class="fb-word"><span class="zh">${esc(zh)}</span><br><span class="py-always">${esc(py)}</span><br>${esc(q.x.en)}</p>
+    <button type="button" class="btn primary next">${last ? "See results" : "Next"}</button>`;
+  $(".next").focus();
 }
 
 // ───────── quiz runner ─────────
@@ -277,11 +350,12 @@ function showQ() {
     <p class="q-count">${quiz.i + 1} / ${quiz.qs.length}</p>
     <h2 class="q-kind">${esc(q.kind)} <span class="en-h">${esc(q.en)}</span></h2>
     <div class="q-prompt">${q.prompt}</div>
-    <div class="q-opts">${q.opts.map((o, j) => `<button type="button" class="opt${o.zh ? " zh" : ""}" data-j="${j}">${esc(o.t)}${o.p ? `<span class="opt-py">${esc(o.p)}</span>` : ""}</button>`).join("")}</div>
-    ${!q.noHint && (q.hintPy || q.opts.some((o) => o.p)) ? `<button type="button" class="btn ghost small hint-btn" id="hint">Show pinyin (hint)</button>` : ""}
+    ${q.type === "order" ? '<div class="q-order"></div>' : ""}<div class="q-opts">${q.opts.map((o, j) => `<button type="button" class="opt${o.zh ? " zh" : ""}" data-j="${j}">${esc(o.t)}${o.p ? `<span class="opt-py">${esc(o.p)}</span>` : ""}</button>`).join("")}</div>
+    ${!q.noHint && (q.hintPy || q.type === "order" || q.opts.some((o) => o.p)) ? `<button type="button" class="btn ghost small hint-btn" id="hint">Show pinyin (hint)</button>` : ""}
     ${q.hintPy ? `<p class="q-hintpy" hidden>${esc(q.hintPy)}</p>` : ""}
     <div class="q-feedback" aria-live="polite"></div>
   </section>`;
+  if (q.type === "order") renderOrder();
   if (q.listen) setTimeout(() => speak(q.listen), 250);
 }
 document.addEventListener("click", (ev) => {
@@ -315,9 +389,16 @@ document.addEventListener("click", (ev) => {
     <p>${r === n ? "All correct!" : r >= n * 0.7 ? "Well done." : "Good effort. The words you missed will come back in your next review."}</p>
     ${quiz.mode === "review" ? `<p class="streak"><b>${store.streak}</b> day streak</p>` : ""}
     ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li><span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li><span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
-    <div class="done-actions"><a class="btn primary" href="${back}">${quiz.mode === "station" ? "Back to station" : "Back to map"}</a></div>
+    ${quiz.mode === "station" ? (() => { const ss = stationStats(ST[quiz.sid]); return `<p class="hint">You have practised <b>${ss.p}</b> of ${ss.n} items in this station${ss.p < ss.n ? ". The next set starts with the ones you haven't done yet." : "."}</p>`; })() : ""}
+    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">Back to map</a>`}</div>
   </section>`;
   quiz = null;
+});
+
+document.addEventListener("click", (ev) => {
+  if (ev.target.id !== "again") return;
+  const sid = ev.target.dataset.sid; if (!ST[sid]) return;
+  startQuiz(buildPractice(sid), "station", sid); window.scrollTo(0, 0);
 });
 
 // ───────── progress ─────────
@@ -348,19 +429,20 @@ function restoreCode(code) {
   store = { items, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
   save();
 }
+const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip"><span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
 function viewProgress(msg) {
   setTab("progress");
   const sts = OPEN.map((s) => ({ s, ...stationStats(s) }));
   const m = sts.filter((x) => x.mastered).length;
   const N = Object.keys(WORDS).length;
-  const totalK = Object.keys(WORDS).filter(known).length;
+  const A = allStats();
   const code = makeCode();
   // Wrong = last answer was wrong (b 0). Settling = right once, needs a second day (b 1).
   const wrongW = Object.keys(WORDS).filter((h) => { const it = item("w:" + h); return it.seen > 0 && it.b === 0; }).slice(0, 25);
   const settlingW = Object.keys(WORDS).filter((h) => item("w:" + h).b === 1).slice(0, 25);
   const params = new URLSearchParams({ usp: "pp_url" });
   params.set(ENTRY.code, code);
-  params.set(ENTRY.words, `${totalK}/${N}`);
+  params.set(ENTRY.words, `${A.k}/${A.n} learned · ${A.p} practised | words ${A.w.k}/${A.w.n} · grammar ${A.g.k}/${A.g.n} · sentences ${A.o.k}/${A.o.n}`);
   params.set(ENTRY.stations, `${m}/${sts.length}`);
   params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
@@ -369,10 +451,11 @@ function viewProgress(msg) {
   if (ENTRY.pending) params.set(ENTRY.pending, settlingW.join("、") || "none");
   const formUrl = FORM + "?" + params.toString();
   main.innerHTML = `<section class="block"><h2>My progress</h2>
-    <div class="tiles"><div class="tile"><b>${m}</b><span>/${sts.length}<br>stations mastered</span></div>
-    <div class="tile"><b>${totalK}</b><span>/${N}<br>words known</span></div>
+    <div class="tiles"><div class="tile"><b>${A.p}</b><span>/${A.n}<br>practised</span></div>
+    <div class="tile"><b>${A.k}</b><span>/${A.n}<br>learned</span></div>
+    <div class="tile"><b>${m}</b><span>/${sts.length}<br>stations mastered</span></div>
     <div class="tile"><b>${store.streak}</b><span>day<br>streak</span></div></div>
-    <p class="hint">A word counts as known after you get it right on two different days. A station is mastered when you know 80% of its words.</p>
+    <p class="hint">Each station has words, grammar and sentences to learn. <b>Practised</b> = you have answered it at least once. <b>Learned</b> = you got it right on two different days, so something you practise today is learned when you get it right again on another day. A station is mastered when you have learned 80% of it.</p>
   </section>
   <section class="block"><h3>Send to your teacher</h3>
     <p class="hint">The form opens with your progress already filled in. Sign in with your school account, check it, then press Submit.</p>
@@ -386,10 +469,10 @@ function viewProgress(msg) {
     ${msg ? `<p class="hint" role="status" style="margin-top:8px"><b>${esc(msg)}</b></p>` : ""}
   </section>
   ${wrongW.length || settlingW.length ? `<section class="block"><h3>Words to practise</h3>
-    ${wrongW.length ? `<p class="hint"><b>Got wrong last time</b> (${wrongW.length})</p><p class="zh">${wrongW.map(esc).join("、")}</p>` : ""}
-    ${settlingW.length ? `<p class="hint" style="margin-top:8px"><b>Right once, get it right again on another day</b> (${settlingW.length})</p><p class="zh">${settlingW.map(esc).join("、")}</p>` : ""}
+    ${wrongW.length ? `<p class="hint"><b>Got wrong last time</b> (${wrongW.length})</p><div class="wlist">${wrongW.map(wChip).join("")}</div>` : ""}
+    ${settlingW.length ? `<p class="hint" style="margin-top:8px"><b>Right once, get it right again on another day</b> (${settlingW.length})</p><div class="wlist">${settlingW.map(wChip).join("")}</div>` : ""}
   </section>` : ""}
-  <section class="block"><h3>By station</h3><ul class="plist">${sts.map((x) => `<li><a href="#s-${x.s.id}"><span class="zh">${esc(x.s.title)}</span><span class="meter"><i style="width:${x.n ? (x.k / x.n) * 100 : 0}%"></i></span><span class="num">${x.k}/${x.n}</span>${x.mastered ? '<span class="tick">✓</span>' : ""}</a></li>`).join("")}</ul></section>
+  <section class="block"><h3>By station</h3><p class="hint">Dark bar = learned · light bar = practised</p><ul class="plist">${sts.map((x) => `<li><a href="#s-${x.s.id}"><span class="pname"><span class="zh">${esc(x.s.title)}</span><span class="en">${esc(x.s.en)}</span></span>${meter2(x.k, x.p, x.n)}<span class="num">${x.k}/${x.n}${x.p > x.k ? `<small>${x.p} practised</small>` : ""}</span>${x.mastered ? '<span class="tick">✓</span>' : "<span></span>"}</a></li>`).join("")}</ul></section>
   <section class="block reset"><button type="button" class="btn ghost small" id="reset">Reset my progress</button><span id="reset-confirm" hidden> Are you sure? <button type="button" class="btn danger small" id="reset-yes">Yes, reset</button></span></section>`;
 }
 document.addEventListener("click", async (ev) => {

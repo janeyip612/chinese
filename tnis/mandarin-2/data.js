@@ -4,14 +4,14 @@
 // Word format: "汉字|pinyin|English". Frame tokens: "汉字|pinyin" fixed, or {s:[...], link:i} slot.
 // A slot with link:i always takes the same option index as slot i.
 
-const CURRENT_WEEK = 13;
+const CURRENT_WEEK = 14;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
-// Week 13: Map Guide summative (needs Weeks 11–12) + giving opinions with reasons (needs 因为……所以…… from last year).
+// Week 14: review last week's opinions; get ready for shopping (prices, 贵/便宜, 多少, clothes from last year).
 const FOCUS = {
-  week: 13,
-  why: "Get ready for this week's Map Guide task and for giving reasons.",
-  stations: ["d2", "d1", "y6"],
+  week: 14,
+  why: "Review giving opinions, and get ready for shopping: prices, 贵 and 便宜, and clothes.",
+  stations: ["d3", "y6", "y8"],
 };
 
 const ZONES = [
@@ -381,7 +381,37 @@ const STATIONS = [
     tip: "辶 is about walking: 远, 近, 边, 这, 还. 左 or 右? 右 has a mouth 口, and you eat with your right hand.",
   },
   {
-    id: "d3", zone: "c3", week: 13, title: "我觉得……", en: "Giving opinions", when: "Week 13", locked: true,
-    words: [], frames: [],
+    id: "d3", zone: "c3", week: 13, title: "我觉得……", en: "Giving opinions", when: "Week 13",
+    words: [
+      "觉得|juéde|to think; to feel (opinion)", "方便|fāngbiàn|convenient", "安静|ānjìng|quiet",
+      "热闹|rènao|lively; busy (with people)", "干净|gānjìng|clean", "中间|zhōngjiān|between; in the middle",
+      "一直|yìzhí|straight on", "地图|dìtú|map",
+    ],
+    review: ["因为", "所以", "附近"],
+    frames: [
+      { q: "你觉得……怎么样？|Nǐ juéde … zěnmeyàng?|What do you think of …?",
+        t: ["我觉得|wǒ juéde", { s: ["这个公园|zhège gōngyuán", "图书馆|túshūguǎn", "商场|shāngchǎng"] }, "很|hěn", { s: ["安静|ānjìng", "热闹|rènao", "干净|gānjìng", "方便|fāngbiàn"] }, "。|."],
+        ex: "我觉得这个公园很安静。|Wǒ juéde zhège gōngyuán hěn ānjìng.|I think this park is quiet." },
+      { q: "我觉得……，因为……|Wǒ juéde …, yīnwèi …|I think …, because …",
+        t: ["我觉得|wǒ juéde", { s: ["商场|shāngchǎng", "超市|chāoshì", "图书馆|túshūguǎn"] }, "很|hěn", { s: ["方便|fāngbiàn", "干净|gānjìng", "安静|ānjìng"] }, "，|,", "因为|yīnwèi", { s: ["离我家很近|lí wǒ jiā hěn jìn", "人不多|rén bù duō"] }, "。|."],
+        ex: "我觉得商场很方便，因为离我家很近。|Wǒ juéde shāngchǎng hěn fāngbiàn, yīnwèi lí wǒ jiā hěn jìn.|I think the mall is convenient because it's close to my home." },
+      { q: "……在哪儿？|… zài nǎr?|Where is …?",
+        t: [{ s: ["银行|yínháng", "公园|gōngyuán", "图书馆|túshūguǎn"] }, "在|zài", { s: ["超市和饭馆|chāoshì hé fànguǎn", "学校和医院|xuéxiào hé yīyuàn"] }, "中间|zhōngjiān", "。|."],
+        ex: "银行在超市和饭馆中间。|Yínháng zài chāoshì hé fànguǎn zhōngjiān.|The bank is between the supermarket and the restaurant." },
+      { q: "怎么走？|Zěnme zǒu?|How do I get there?",
+        t: ["一直|yìzhí", "往前走|wǎng qián zǒu", "，|,", "然后往|ránhòu wǎng", { s: ["左|zuǒ", "右|yòu"] }, "拐|guǎi", "。|."],
+        ex: "一直往前走，然后往左拐。|Yìzhí wǎng qián zǒu, ránhòu wǎng zuǒ guǎi.|Go straight on, then turn left." },
+    ],
+    errors: [
+      { ok: "我觉得图书馆很安静。", bad: ["我觉得图书馆安静很。"], tip: "很 comes before the adjective: 很安静." },
+      { ok: "银行在超市和饭馆中间。", bad: ["银行在中间超市和饭馆。"], tip: "A 在 B 和 C 中间: 中间 goes at the end." },
+      { ok: "这个公园很干净。", bad: ["这个公园很干静。"], tip: "干净 = clean (净 has 冫, like clear water). 安静 = quiet." },
+    ],
+    fill: [
+      { q: "你觉得这个商场___？", o: ["怎么样", "什么", "哪儿", "几"], a: 0, en: "What do you think of this mall?" },
+      { q: "我觉得商场很方便，___离我家很近。", o: ["因为", "所以", "但是", "然后"], a: 0, en: "I think the mall is convenient because it's close to my home." },
+      { q: "图书馆人不多，很___。", o: ["安静", "热闹", "方便", "干净"], a: 0, en: "There aren't many people in the library. It's very quiet." },
+    ],
+    tip: "青 gives the sound: 静, 净, 请 and 情 all sound like qing / jing. 静 or 净? 净 has 冫 (water), so it means clean. 闹 = 市 (market) inside a 门 (door): noisy and lively.",
   },
 ];

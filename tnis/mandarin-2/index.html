@@ -102,7 +102,8 @@ h3 { font: 700 19px/1.3 var(--font-zh); margin: 0 0 10px; }
 .stop > a:hover .stop-body { border-color: var(--c); }
 .stop-title { font-size: 20px; font-weight: 700; }
 .stop-body .en { font-size: 14px; }
-.meter { display: block; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.meter { display: flex; height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; }
+.meter i.pr { opacity: .35; }
 .meter i { display: block; height: 100%; background: var(--c, var(--ok)); }
 .pill { justify-self: start; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--muted); font-variant-numeric: tabular-nums; }
 .pill.mastered { background: var(--ok-bg); color: var(--ok); }
@@ -191,6 +192,21 @@ h3 { font: 700 19px/1.3 var(--font-zh); margin: 0 0 10px; }
 .hinted .opt-py { display: block; }
 .q-hintpy { margin: -6px 0 0; text-align: center; font-size: 22px; color: var(--muted); }
 .hint-btn { justify-self: start; }
+/* sentence building */
+.q-en-s { font-size: 21px; }
+.q-order { display: grid; gap: 12px; }
+.otray { min-height: 64px; border: 2px dashed var(--rule); border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.otray.bad { border-color: var(--no); border-style: solid; }
+.otray.ok { border-color: var(--ok); border-style: solid; background: var(--ok-bg); }
+.otray.shown { border-color: var(--rule); border-style: solid; }
+.oph { color: var(--muted); font-size: 14px; padding-left: 4px; }
+.oend { font-size: 24px; color: var(--muted); }
+.obank { display: flex; flex-wrap: wrap; gap: 8px; }
+.otile { border: 2px solid var(--rule); background: var(--bg); border-radius: 10px; padding: 8px 12px; cursor: pointer; display: inline-grid; justify-items: center; line-height: 1.2; }
+.otile .zh { font-size: 22px; }
+.otile:hover:not(.used) { border-color: var(--ink); }
+.otile.used { visibility: hidden; }
+.orow { display: flex; flex-wrap: wrap; gap: 8px; }
 .focus { margin-top: 10px !important; color: var(--ink) !important; display: block; }
 .focus .chip { text-decoration: none; display: inline-block; margin: 2px 0; }
 .q-feedback { display: grid; gap: 6px; justify-items: start; }
@@ -214,7 +230,14 @@ h3 { font: 700 19px/1.3 var(--font-zh); margin: 0 0 10px; }
 .code { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: var(--bg); border-radius: 8px; padding: 10px 12px; }
 .code code { font-family: var(--font-zh); font-size: 15px; flex: 1; min-width: 220px; }
 .plist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.plist a { display: grid; grid-template-columns: 8em 1fr 4em 1.2em; gap: 10px; align-items: center; text-decoration: none; padding: 4px 0; }
+.plist a { display: grid; grid-template-columns: minmax(8em, 11em) 1fr 5.5em 1.2em; gap: 10px; align-items: center; text-decoration: none; color: inherit; padding: 4px 0; }
+.plist .pname { display: grid; line-height: 1.25; }
+.plist .pname .en { font-size: 12px; color: var(--muted); }
+.plist .num small { display: block; font-size: 11px; }
+.wlist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.wchip { display: inline-grid; justify-items: center; border: 1px solid var(--rule); background: var(--bg); border-radius: 8px; padding: 4px 10px; line-height: 1.25; }
+.wchip .zh { font-size: 18px; }
+.wchip .en { font-size: 12px; color: var(--muted); }
 .plist .meter i { background: var(--ok); }
 .plist .num { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 14px; text-align: right; }
 .reset { background: transparent; border: 0; padding: 0; }
@@ -222,7 +245,7 @@ h3 { font: 700 19px/1.3 var(--font-zh); margin: 0 0 10px; }
 @media (max-width: 420px) {
   .q-zh { font-size: 44px; }
   .b-zh { font-size: 21px; }
-  .plist a { grid-template-columns: 6.5em 1fr 3.5em 1em; }
+  .plist a { grid-template-columns: 7.5em 1fr 4.5em 1em; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -239,6 +262,8 @@ h3 { font: 700 19px/1.3 var(--font-zh); margin: 0 0 10px; }
 </div></header>
 <main id="main"></main>
 <script src="data.js"></script>
+<script src="sentences.js"></script>
+<script src="../../assets/voice-tip.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
