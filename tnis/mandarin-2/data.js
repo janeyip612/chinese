@@ -7,11 +7,11 @@
 const CURRENT_WEEK = 14;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
-// Week 14: review last week's opinions; get ready for shopping (prices, 贵/便宜, 多少, clothes from last year).
+// Week 14: shopping (new station d4), plus last week's opinions and last year's clothes.
 const FOCUS = {
   week: 14,
-  why: "Review giving opinions, and get ready for shopping: prices, 贵 and 便宜, and clothes.",
-  stations: ["d3", "y6", "y8"],
+  why: "Go shopping in Chinese: ask the price, choose the size and colour, bargain, and decide.",
+  stations: ["d4", "d3", "y8"],
 };
 
 const ZONES = [
@@ -413,5 +413,46 @@ const STATIONS = [
       { q: "图书馆人不多，很___。", o: ["安静", "热闹", "方便", "干净"], a: 0, en: "There aren't many people in the library. It's very quiet." },
     ],
     tip: "青 gives the sound: 静, 净, 请 and 情 all sound like qing / jing. 静 or 净? 净 has 冫 (water), so it means clean. 闹 = 市 (market) inside a 门 (door): noisy and lively.",
+  },
+  {
+    id: "d4", zone: "c3", week: 14, title: "多少钱？", en: "Shopping: how much is it?", when: "Week 14",
+    words: [
+      "买|mǎi|to buy", "卖|mài|to sell", "东西|dōngxi|thing; stuff", "块|kuài|kuai (spoken unit of money)",
+      "钱|qián|money", "一共|yígòng|altogether; in total", "试|shì|to try (on)",
+      "件|jiàn|measure word for tops (一件衬衫)", "双|shuāng|a pair (一双鞋子)", "条|tiáo|measure word for long things (一条裤子)",
+      "太……了|tài……le|too … (太贵了)", "便宜一点儿|piányi yìdiǎnr|a bit cheaper",
+    ],
+    review: ["贵", "便宜", "多少", "衣服", "衬衫"],
+    frames: [
+      { q: "这件衬衫多少钱？|Zhè jiàn chènshān duōshao qián?|How much is this shirt?",
+        t: [{ s: ["这件衬衫|zhè jiàn chènshān", "这双鞋子|zhè shuāng xiézi", "这条裙子|zhè tiáo qúnzi"] }, { s: ["一百块|yìbǎi kuài", "二百块|èrbǎi kuài", "一百五十块|yìbǎi wǔshí kuài"] }, "。|."],
+        ex: "这件衬衫一百块。|Zhè jiàn chènshān yìbǎi kuài.|This shirt is 100 kuai." },
+      { q: "你要买什么？|Nǐ yào mǎi shénme?|What would you like to buy?",
+        t: ["我要|wǒ yào", { s: ["一件衬衫|yí jiàn chènshān", "两双鞋子|liǎng shuāng xiézi", "一条裤子|yì tiáo kùzi"] }, "。|."],
+        ex: "我要两双鞋子。|Wǒ yào liǎng shuāng xiézi.|I'd like two pairs of shoes." },
+      { q: "太贵了？讲价！|Tài guì le? Jiǎngjià!|Too expensive? Bargain!",
+        t: ["太贵了|tài guì le", "！|!", "便宜一点儿吧|piányi yìdiǎnr ba", "。|."],
+        ex: "太贵了！便宜一点儿吧。|Tài guì le! Piányi yìdiǎnr ba.|Too expensive! A bit cheaper, please." },
+      { q: "一共多少钱？|Yígòng duōshao qián?|How much altogether?",
+        t: ["我买|wǒ mǎi", { s: ["一件衬衫|yí jiàn chènshān", "一条裙子|yì tiáo qúnzi"] }, "和|hé", "一双鞋子|yì shuāng xiézi", "，|,", "一共|yígòng", { s: ["三百块|sānbǎi kuài", "二百五十块|èrbǎi wǔshí kuài"] }, "。|."],
+        ex: "我买一件衬衫和一双鞋子，一共三百块。|Wǒ mǎi yí jiàn chènshān hé yì shuāng xiézi, yígòng sānbǎi kuài.|I'm buying a shirt and a pair of shoes: 300 kuai altogether." },
+      { q: "我可以试试吗？|Wǒ kěyǐ shìshi ma?|Can I try it on?",
+        t: ["我|wǒ", "可以|kěyǐ", "试试|shìshi", { s: ["这件|zhè jiàn", "那双|nà shuāng", "这条|zhè tiáo"] }, "吗|ma", "？|?"],
+        ex: "我可以试试这件吗？|Wǒ kěyǐ shìshi zhè jiàn ma?|Can I try this one on?" },
+    ],
+    fill: [
+      { q: "一___衬衫", o: ["件", "双", "条", "个"], a: 0, en: "a shirt" },
+      { q: "一___鞋子", o: ["双", "件", "条", "本"], a: 0, en: "a pair of shoes" },
+      { q: "一___裤子", o: ["条", "件", "双", "个"], a: 0, en: "a pair of trousers" },
+      { q: "我想___一件衬衫。（buy）", o: ["买", "卖", "试", "穿"], a: 0, en: "I want to buy a shirt." },
+      { q: "这个商店___衣服。（sell）", o: ["卖", "买", "试", "看"], a: 0, en: "This shop sells clothes." },
+      { q: "一件一百块，一双二百块，___三百块。", o: ["一共", "太", "便宜", "多少"], a: 0, en: "100 + 200 = 300 altogether." },
+    ],
+    errors: [
+      { ok: "这件衬衫太贵了！|Zhè jiàn chènshān tài guì le!", bad: ["这件衬衫太贵！|Zhè jiàn chènshān tài guì!", "这件衬衫很贵了！|Zhè jiàn chènshān hěn guì le!"], tip: "太 + adjective + 了 go together: 太贵了." },
+      { ok: "我要两双鞋子。|Wǒ yào liǎng shuāng xiézi.", bad: ["我要两个鞋子。|Wǒ yào liǎng gè xiézi.", "我要二双鞋子。|Wǒ yào èr shuāng xiézi."], tip: "Shoes come in pairs: 双. Use 两 before a measure word." },
+      { ok: "一共多少钱？|Yígòng duōshao qián?", bad: ["多少钱一共？|Duōshao qián yígòng?"], tip: "一共 comes first: 一共 + 多少钱." },
+    ],
+    tip: "The customer's 4 steps: 看一看 → 问一问 → 谈一谈 → 买不买. 贝 inside 买 · 卖 · 贵 means money.",
   },
 ];

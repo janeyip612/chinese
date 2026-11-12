@@ -10,8 +10,8 @@ const CURRENT_WEEK = 14;
 // Teacher-set focus for this week's Daily review (update every Friday).
 const FOCUS = {
   week: 14,
-  why: "Keep your day strong: days of the week, times and what you do, ready for morning, noon and evening this week.",
-  stations: ["s12", "s13", "s9"],
+  why: "Morning, noon and evening: say when and where you do things, big time → small time → place → action.",
+  stations: ["s14", "s13", "s12"],
 };
 
 const ZONES = [
@@ -308,7 +308,42 @@ const STATIONS = [
     ],
     tip: "Like a film: the director sets the scene (when), then shouts ACTION! 我 + time + action.",
   },
-  { id: "s14", zone: "b4", week: 14, title: "早上·中午·晚上", en: "Morning, noon & evening", when: "Week 14", locked: true, words: [], frames: [] },
+  {
+    id: "s14", zone: "b4", week: 14, title: "早上·中午·晚上", en: "Morning, noon & evening", when: "Week 14",
+    words: [
+      "早上|zǎoshang|morning", "中午|zhōngwǔ|noon", "下午|xiàwǔ|afternoon", "晚上|wǎnshang|evening",
+      "吃|chī|to eat", "早饭|zǎofàn|breakfast", "午饭|wǔfàn|lunch", "晚饭|wǎnfàn|dinner",
+      "在|zài|at; in (在家, 在学校)", "然后|ránhòu|then; after that", "周末|zhōumò|weekend",
+      "刷牙|shuāyá|to brush your teeth", "洗澡|xǐzǎo|to shower", "做作业|zuò zuòyè|to do homework",
+    ],
+    frames: [
+      { q: "你早上几点吃早饭？|Nǐ zǎoshang jǐ diǎn chī zǎofàn?|What time do you eat breakfast in the morning?",
+        t: ["我|wǒ", { s: ["早上|zǎoshang", "中午|zhōngwǔ", "晚上|wǎnshang"] }, { s: ["七点|qī diǎn", "十二点|shí'èr diǎn", "六点半|liù diǎn bàn"], link: 0 }, { s: ["吃早饭|chī zǎofàn", "吃午饭|chī wǔfàn", "吃晚饭|chī wǎnfàn"], link: 0 }, "。|."],
+        ex: "我早上七点吃早饭。|Wǒ zǎoshang qī diǎn chī zǎofàn.|I eat breakfast at seven in the morning." },
+      { q: "你中午在哪儿吃午饭？|Nǐ zhōngwǔ zài nǎr chī wǔfàn?|Where do you eat lunch at noon?",
+        t: ["我|wǒ", "中午|zhōngwǔ", { s: ["在学校|zài xuéxiào", "在家|zài jiā", "在教室|zài jiàoshì"] }, "吃午饭|chī wǔfàn", "。|."],
+        ex: "我中午在学校吃午饭。|Wǒ zhōngwǔ zài xuéxiào chī wǔfàn.|I eat lunch at school at noon." },
+      { q: "你吃早饭，然后做什么？|Nǐ chī zǎofàn, ránhòu zuò shénme?|You eat breakfast, then what do you do?",
+        t: ["我|wǒ", "七点|qī diǎn", "吃早饭|chī zǎofàn", "，|,", "然后|ránhòu", { s: ["上学|shàngxué", "刷牙|shuāyá", "做作业|zuò zuòyè"] }, "。|."],
+        ex: "我七点吃早饭，然后上学。|Wǒ qī diǎn chī zǎofàn, ránhòu shàngxué.|I eat breakfast at seven, then go to school." },
+      { q: "周末你几点起床？|Zhōumò nǐ jǐ diǎn qǐchuáng?|What time do you get up at the weekend?",
+        t: ["周末|zhōumò", "我|wǒ", { s: ["九点|jiǔ diǎn", "十点|shí diǎn", "八点半|bā diǎn bàn"] }, "起床|qǐchuáng", "。|."],
+        ex: "周末我九点起床。|Zhōumò wǒ jiǔ diǎn qǐchuáng.|At the weekend I get up at nine." },
+    ],
+    fill: [
+      { q: "我___七点吃早饭。（morning）", o: ["早上", "中午", "下午", "晚上"], a: 0, en: "I eat breakfast at seven in the morning." },
+      { q: "我晚上八点___。（do homework）", o: ["做作业", "洗澡", "刷牙", "下课"], a: 0, en: "I do homework at eight in the evening." },
+      { q: "我在家吃早饭，___上学。", o: ["然后", "每天", "周末", "现在"], a: 0, en: "I eat breakfast at home, then go to school." },
+      { q: "星期六和星期天是___。", o: ["周末", "晚上", "早饭", "中午"], a: 0, en: "Saturday and Sunday are the weekend." },
+      { q: "我中午十二点吃___。", o: ["午饭", "早饭", "晚饭", "作业"], a: 0, en: "I eat lunch at twelve noon." },
+    ],
+    errors: [
+      { ok: "我早上七点起床。|Wǒ zǎoshang qī diǎn qǐchuáng.", bad: ["我七点早上起床。|Wǒ qī diǎn zǎoshang qǐchuáng.", "我早上起床七点。|Wǒ zǎoshang qǐchuáng qī diǎn."], tip: "Big → small: 早上 comes before 七点, and both come before the action." },
+      { ok: "我中午在学校吃午饭。|Wǒ zhōngwǔ zài xuéxiào chī wǔfàn.", bad: ["我中午吃午饭在学校。|Wǒ zhōngwǔ chī wǔfàn zài xuéxiào.", "我在学校吃午饭中午。|Wǒ zài xuéxiào chī wǔfàn zhōngwǔ."], tip: "Time → 在 + place → ACTION!" },
+      { ok: "我下午四点回家。|Wǒ xiàwǔ sì diǎn huí jiā.", bad: ["我下午四点在家回家。|Wǒ xiàwǔ sì diǎn zài jiā huí jiā."], tip: "回家 already says where you go: no 在家 before it." },
+    ],
+    tip: "The camera zooms in: big time → small time → 在 + place → ACTION! 我早上七点在家吃早饭。",
+  },
   { id: "s15", zone: "b4", week: 15, title: "吃什么？", en: "What do you eat?", when: "Week 15", locked: true, words: [], frames: [] },
   { id: "s16", zone: "b4", week: 16, title: "我要……", en: "Ordering food & drink", when: "Week 16", locked: true, words: [], frames: [] },
 ];
