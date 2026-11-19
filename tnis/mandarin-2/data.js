@@ -4,14 +4,14 @@
 // Word format: "汉字|pinyin|English". Frame tokens: "汉字|pinyin" fixed, or {s:[...], link:i} slot.
 // A slot with link:i always takes the same option index as slot i.
 
-const CURRENT_WEEK = 14;
+const CURRENT_WEEK = 15;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
-// Week 14: shopping (new station d4), plus last week's opinions and last year's clothes.
+// Week 15: compare and choose (new station d5), plus last week's shopping and last year's clothes.
 const FOCUS = {
-  week: 14,
-  why: "Go shopping in Chinese: ask the price, choose the size and colour, bargain, and decide.",
-  stations: ["d4", "d3", "y8"],
+  week: 15,
+  why: "Find the best deal: ask 还是, compare with 比 · 更 · 最 · 一样, check 新 or 旧, then choose.",
+  stations: ["d5", "d4", "y8"],
 };
 
 const ZONES = [
@@ -454,5 +454,45 @@ const STATIONS = [
       { ok: "一共多少钱？|Yígòng duōshao qián?", bad: ["多少钱一共？|Duōshao qián yígòng?"], tip: "一共 comes first: 一共 + 多少钱." },
     ],
     tip: "The customer's 4 steps: 看一看 → 问一问 → 谈一谈 → 买不买. 贝 inside 买 · 卖 · 贵 means money.",
+  },
+  {
+    id: "d5", zone: "c3", week: 15, title: "比一比", en: "Compare & choose", when: "Week 15",
+    words: [
+      "还是|háishi|or (in a question)", "更|gèng|even more", "最|zuì|the most", "一样|yíyàng|the same",
+      "新|xīn|new", "旧|jiù|old; used (not new)",
+    ],
+    review: ["比", "贵", "便宜", "好看"],
+    frames: [
+      { q: "你要红的还是蓝的？|Nǐ yào hóng de háishi lán de?|Do you want the red one or the blue one?",
+        t: ["你要|nǐ yào", { s: ["红的|hóng de", "新的|xīn de", "大的|dà de"] }, "还是|háishi", { s: ["蓝的|lán de", "旧的|jiù de", "小的|xiǎo de"], link: 0 }, "？|?"],
+        ex: "你要新的还是旧的？|Nǐ yào xīn de háishi jiù de?|Do you want a new one or a used one?" },
+      { q: "这件比那件便宜吗？|Zhè jiàn bǐ nà jiàn piányi ma?|Is this one cheaper than that one?",
+        t: [{ s: ["这件|zhè jiàn", "这双|zhè shuāng", "这条|zhè tiáo"] }, "比|bǐ", { s: ["那件|nà jiàn", "那双|nà shuāng", "那条|nà tiáo"], link: 0 }, { s: ["便宜|piányi", "贵|guì", "好看|hǎokàn"] }, "。|."],
+        ex: "这件比那件便宜。|Zhè jiàn bǐ nà jiàn piányi.|This one is cheaper than that one." },
+      { q: "那件呢？|Nà jiàn ne?|And that one?",
+        t: ["这件很|zhè jiàn hěn", { s: ["便宜|piányi", "好看|hǎokàn"] }, "，|,", "那件更|nà jiàn gèng", { s: ["便宜|piányi", "好看|hǎokàn"], link: 0 }, "。|."],
+        ex: "这件很便宜，那件更便宜。|Zhè jiàn hěn piányi, nà jiàn gèng piányi.|This one is cheap; that one is even cheaper." },
+      { q: "哪件最便宜？|Nǎ jiàn zuì piányi?|Which one is the cheapest?",
+        t: ["三件衬衫|sān jiàn chènshān", "，|,", { s: ["蓝的|lán de", "红的|hóng de", "白的|bái de"] }, "最|zuì", { s: ["便宜|piányi", "贵|guì", "好看|hǎokàn"] }, "。|."],
+        ex: "三件衬衫，蓝的最便宜。|Sān jiàn chènshān, lán de zuì piányi.|Of the three shirts, the blue one is the cheapest." },
+      { q: "这两件一样吗？|Zhè liǎng jiàn yíyàng ma?|Are these two the same?",
+        t: ["这两件衬衫|zhè liǎng jiàn chènshān", { s: ["一样|yíyàng", "不一样|bù yíyàng"] }, { s: ["贵|guì", "大|dà", "好看|hǎokàn"] }, "。|."],
+        ex: "这两件衬衫一样贵。|Zhè liǎng jiàn chènshān yíyàng guì.|These two shirts cost the same." },
+    ],
+    fill: [
+      { q: "你要新的___旧的？", o: ["还是", "和", "也", "都"], a: 0, en: "Do you want a new one or a used one?" },
+      { q: "这件八十块，那件五十块。那件___这件便宜。", o: ["比", "更", "最", "一样"], a: 0, en: "That one is cheaper than this one." },
+      { q: "这件很便宜，那件___便宜。", o: ["更", "最", "比", "还是"], a: 0, en: "This one is cheap; that one is even cheaper." },
+      { q: "A 二百块，B 一百二十块，C 五十块。C ___便宜。", o: ["最", "更", "比", "一样"], a: 0, en: "C is the cheapest." },
+      { q: "这件九十块，那件也九十块。两件___贵。", o: ["一样", "最", "更", "比"], a: 0, en: "The two cost the same." },
+      { q: "这件衬衫不是新的，是___的。", o: ["旧", "新", "大", "贵"], a: 0, en: "This shirt isn't new; it's used." },
+    ],
+    errors: [
+      { ok: "这件比那件便宜。|Zhè jiàn bǐ nà jiàn piányi.", bad: ["这件比那件很便宜。|Zhè jiàn bǐ nà jiàn hěn piányi.", "这件便宜比那件。|Zhè jiàn piányi bǐ nà jiàn."], tip: "比 + the other thing + adjective. No 很 after 比." },
+      { ok: "那件更便宜。|Nà jiàn gèng piányi.", bad: ["那件很更便宜。|Nà jiàn hěn gèng piányi.", "那件便宜更。|Nà jiàn piányi gèng."], tip: "更 and 最 sit right before the adjective, with no 很." },
+      { ok: "你要红的还是蓝的？|Nǐ yào hóng de háishi lán de?", bad: ["你要红的还是蓝的吗？|Nǐ yào hóng de háishi lán de ma?"], tip: "还是 already makes a question: no 吗." },
+      { ok: "这两件衬衫一样贵。|Zhè liǎng jiàn chènshān yíyàng guì.", bad: ["这两件衬衫贵一样。|Zhè liǎng jiàn chènshān guì yíyàng."], tip: "一样 comes before the adjective: 一样贵, 一样大." },
+    ],
+    tip: "Shop like a pro: 比 compares two things, 更 = even more, 最 = the most of all, 一样 = no difference. Always ask: 新的还是旧的？",
   },
 ];
