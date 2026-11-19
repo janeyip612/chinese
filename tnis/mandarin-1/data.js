@@ -5,13 +5,13 @@
 // A slot with link:i always takes the same option index as slot i (i counts slots only).
 // Error items: "汉字|pinyin" strings.
 
-const CURRENT_WEEK = 14;
+const CURRENT_WEEK = 15;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
 const FOCUS = {
-  week: 14,
-  why: "Morning, noon and evening: say when and where you do things, big time → small time → place → action.",
-  stations: ["s14", "s13", "s12"],
+  week: 15,
+  why: "Food and drink through your day: time → (place) → 吃 / 喝 + food. Hungry or thirsty? 我饿了，我想吃……",
+  stations: ["s15", "s14", "s13"],
 };
 
 const ZONES = [
@@ -313,7 +313,7 @@ const STATIONS = [
     words: [
       "早上|zǎoshang|morning", "中午|zhōngwǔ|noon", "下午|xiàwǔ|afternoon", "晚上|wǎnshang|evening",
       "吃|chī|to eat", "早饭|zǎofàn|breakfast", "午饭|wǔfàn|lunch", "晚饭|wǎnfàn|dinner",
-      "在|zài|at; in (在家, 在学校)", "然后|ránhòu|then; after that", "周末|zhōumò|weekend",
+      "在|zài|at; in (在家, 在教室)", "然后|ránhòu|then; after that", "周末|zhōumò|weekend",
       "刷牙|shuāyá|to brush your teeth", "洗澡|xǐzǎo|to shower", "做作业|zuò zuòyè|to do homework",
     ],
     frames: [
@@ -321,8 +321,8 @@ const STATIONS = [
         t: ["我|wǒ", { s: ["早上|zǎoshang", "中午|zhōngwǔ", "晚上|wǎnshang"] }, { s: ["七点|qī diǎn", "十二点|shí'èr diǎn", "六点半|liù diǎn bàn"], link: 0 }, { s: ["吃早饭|chī zǎofàn", "吃午饭|chī wǔfàn", "吃晚饭|chī wǎnfàn"], link: 0 }, "。|."],
         ex: "我早上七点吃早饭。|Wǒ zǎoshang qī diǎn chī zǎofàn.|I eat breakfast at seven in the morning." },
       { q: "你中午在哪儿吃午饭？|Nǐ zhōngwǔ zài nǎr chī wǔfàn?|Where do you eat lunch at noon?",
-        t: ["我|wǒ", "中午|zhōngwǔ", { s: ["在学校|zài xuéxiào", "在家|zài jiā", "在教室|zài jiàoshì"] }, "吃午饭|chī wǔfàn", "。|."],
-        ex: "我中午在学校吃午饭。|Wǒ zhōngwǔ zài xuéxiào chī wǔfàn.|I eat lunch at school at noon." },
+        t: ["我|wǒ", "中午|zhōngwǔ", { s: ["在家|zài jiā", "在教室|zài jiàoshì"] }, "吃午饭|chī wǔfàn", "。|."],
+        ex: "我中午在教室吃午饭。|Wǒ zhōngwǔ zài jiàoshì chī wǔfàn.|I eat lunch in the classroom at noon." },
       { q: "你吃早饭，然后做什么？|Nǐ chī zǎofàn, ránhòu zuò shénme?|You eat breakfast, then what do you do?",
         t: ["我|wǒ", "七点|qī diǎn", "吃早饭|chī zǎofàn", "，|,", "然后|ránhòu", { s: ["上学|shàngxué", "刷牙|shuāyá", "做作业|zuò zuòyè"] }, "。|."],
         ex: "我七点吃早饭，然后上学。|Wǒ qī diǎn chī zǎofàn, ránhòu shàngxué.|I eat breakfast at seven, then go to school." },
@@ -339,11 +339,43 @@ const STATIONS = [
     ],
     errors: [
       { ok: "我早上七点起床。|Wǒ zǎoshang qī diǎn qǐchuáng.", bad: ["我七点早上起床。|Wǒ qī diǎn zǎoshang qǐchuáng.", "我早上起床七点。|Wǒ zǎoshang qǐchuáng qī diǎn."], tip: "Big → small: 早上 comes before 七点, and both come before the action." },
-      { ok: "我中午在学校吃午饭。|Wǒ zhōngwǔ zài xuéxiào chī wǔfàn.", bad: ["我中午吃午饭在学校。|Wǒ zhōngwǔ chī wǔfàn zài xuéxiào.", "我在学校吃午饭中午。|Wǒ zài xuéxiào chī wǔfàn zhōngwǔ."], tip: "Time → 在 + place → ACTION!" },
+      { ok: "我中午在教室吃午饭。|Wǒ zhōngwǔ zài jiàoshì chī wǔfàn.", bad: ["我中午吃午饭在教室。|Wǒ zhōngwǔ chī wǔfàn zài jiàoshì.", "我在教室吃午饭中午。|Wǒ zài jiàoshì chī wǔfàn zhōngwǔ."], tip: "Time → 在 + place → ACTION!" },
       { ok: "我下午四点回家。|Wǒ xiàwǔ sì diǎn huí jiā.", bad: ["我下午四点在家回家。|Wǒ xiàwǔ sì diǎn zài jiā huí jiā."], tip: "回家 already says where you go: no 在家 before it." },
     ],
     tip: "The camera zooms in: big time → small time → 在 + place → ACTION! 我早上七点在家吃早饭。",
   },
-  { id: "s15", zone: "b4", week: 15, title: "吃什么？", en: "What do you eat?", when: "Week 15", locked: true, words: [], frames: [] },
+  {
+    id: "s15", zone: "b4", week: 15, title: "吃什么？", en: "What do you eat?", when: "Week 15",
+    words: [
+      "喝|hē|to drink", "水|shuǐ|water", "牛奶|niúnǎi|milk", "茶|chá|tea",
+      "米饭|mǐfàn|cooked rice", "面条|miàntiáo|noodles", "苹果|píngguǒ|apple",
+      "想|xiǎng|to want to (now)", "饿|è|hungry", "渴|kě|thirsty",
+    ],
+    review: ["吃", "喜欢", "早上", "中午", "晚上"],
+    frames: [
+      { q: "你喜欢吃什么？|Nǐ xǐhuan chī shénme?|What do you like to eat?",
+        t: ["我|wǒ", { s: ["喜欢|xǐhuan", "不喜欢|bù xǐhuan"] }, { s: ["吃米饭|chī mǐfàn", "吃面条|chī miàntiáo", "吃苹果|chī píngguǒ", "喝牛奶|hē niúnǎi", "喝茶|hē chá"] }, "。|."],
+        ex: "我喜欢吃面条。|Wǒ xǐhuan chī miàntiáo.|I like eating noodles." },
+      { q: "你早上喝什么？|Nǐ zǎoshang hē shénme?|What do you drink in the morning?",
+        t: ["我|wǒ", { s: ["早上七点|zǎoshang qī diǎn", "中午十二点|zhōngwǔ shí'èr diǎn", "晚上六点|wǎnshang liù diǎn"] }, { s: ["喝牛奶|hē niúnǎi", "吃米饭|chī mǐfàn", "吃面条|chī miàntiáo"], link: 0 }, "。|."],
+        ex: "我早上七点喝牛奶。|Wǒ zǎoshang qī diǎn hē niúnǎi.|I drink milk at seven in the morning." },
+      { q: "你饿了吗？你想吃什么？|Nǐ è le ma? Nǐ xiǎng chī shénme?|Are you hungry? What do you want to eat?",
+        t: ["我|wǒ", { s: ["饿了|è le", "渴了|kě le"] }, "，|,", "我想|wǒ xiǎng", { s: ["吃米饭|chī mǐfàn", "喝水|hē shuǐ"], link: 0 }, "。|."],
+        ex: "我渴了，我想喝水。|Wǒ kě le, wǒ xiǎng hē shuǐ.|I'm thirsty; I want to drink water." },
+    ],
+    fill: [
+      { q: "我早上___牛奶。", o: ["喝", "吃", "想", "饿"], a: 0, en: "I drink milk in the morning." },
+      { q: "我中午___米饭。", o: ["吃", "喝", "渴", "茶"], a: 0, en: "I eat rice at noon." },
+      { q: "我___了，我想喝水。", o: ["渴", "饿", "吃", "茶"], a: 0, en: "I'm thirsty; I want to drink water." },
+      { q: "我饿了，我想吃___。", o: ["面条", "水", "茶", "牛奶"], a: 0, en: "I'm hungry; I want to eat noodles." },
+      { q: "我喜欢喝茶，可是现在我渴了，我___喝水。", o: ["想", "喜欢", "吃", "饿"], a: 0, en: "I like tea, but now I'm thirsty: I want water." },
+    ],
+    errors: [
+      { ok: "我早上喝牛奶。|Wǒ zǎoshang hē niúnǎi.", bad: ["我喝牛奶早上。|Wǒ hē niúnǎi zǎoshang.", "早上我牛奶喝。|Zǎoshang wǒ niúnǎi hē."], tip: "Time first, then ACTION + food: 早上 → 喝 → 牛奶." },
+      { ok: "我喝水。|Wǒ hē shuǐ.", bad: ["我吃水。|Wǒ chī shuǐ."], tip: "The verb tells you the food: 吃 米饭 · 面条 · 苹果, 喝 水 · 牛奶 · 茶." },
+      { ok: "我饿了，我想吃米饭。|Wǒ è le, wǒ xiǎng chī mǐfàn.", bad: ["我饿了，我想米饭。|Wǒ è le, wǒ xiǎng mǐfàn."], tip: "想 needs an action after it: 想 + 吃 / 喝 + food." },
+    ],
+    tip: "喜欢 = always (我喜欢喝茶). 想 = right now (我渴了，我想喝水). 饿 / 渴 + 了 gives the reason.",
+  },
   { id: "s16", zone: "b4", week: 16, title: "我要……", en: "Ordering food & drink", when: "Week 16", locked: true, words: [], frames: [] },
 ];
