@@ -25,7 +25,7 @@ function grade(id, ok, hinted) {
   const t = today();
   if (ok && hinted) { it.d = t + 1; }
   else if (ok) { if (it.last !== t || it.b === 0) it.b = Math.min(it.b + 1, 5); it.d = t + INTERVALS[it.b]; }
-  else { it.b = 0; it.d = t; }
+  else { it.b = 0; it.d = t; it.w = (it.w || 0) + 1; }
   it.last = t;
   store.items[id] = it; save();
 }
@@ -64,6 +64,12 @@ function speak(text) {
   if (!zhVoice) return false;
   try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.voice = zhVoice; u.lang = zhVoice.lang; u.rate = 0.85; speechSynthesis.speak(u); return true; } catch (e) { return false; }
 }
+
+// One speaker UI for everything students can listen to.
+const CAN_SPEAK = "speechSynthesis" in window;
+const SPK_SVG = '<svg class="spk-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const SPK_IN = CAN_SPEAK ? `<span class="spk spk-in" aria-hidden="true">${SPK_SVG}</span>` : "";
+const spk = (text) => CAN_SPEAK ? `<button type="button" class="spk" data-say="${esc(text)}" aria-label="Listen: ${esc(text)}">${SPK_SVG}</button>` : "";
 
 // ───────── frames (sentence builder) ─────────
 function frameHTML(f, fi, sid) {
@@ -149,7 +155,7 @@ function viewMap() {
 function wordCard(h) {
   const w = WORDS[h]; const k = known(h);
   return `<button type="button" class="word${k ? " known" : ""}" data-h="${esc(h)}" aria-label="${esc(h)}, ${esc(w.e)}">
-    <span class="w-zh">${esc(h)}</span><span class="py w-py">${esc(w.p)}</span><span class="w-en">${esc(w.e)}</span>${k ? '<span class="tick" aria-hidden="true">✓</span>' : ""}</button>`;
+    ${SPK_IN}<span class="w-zh">${esc(h)}</span><span class="py w-py">${esc(w.p)}</span><span class="w-en">${esc(w.e)}</span>${k ? '<span class="tick" aria-hidden="true">✓</span>' : ""}</button>`;
 }
 document.addEventListener("click", (ev) => {
   const c = ev.target.closest(".word"); if (!c) return;
@@ -167,7 +173,7 @@ function viewStation(id) {
   <section class="block"><h3>Words</h3>
     <p class="hint">Tap a word to see the pinyin and meaning${zhVoice ? " and hear it" : ""}.</p>
     <div class="words">${stWords(s).map(wordCard).join("")}</div>
-    ${s.review ? `<p class="also"><span class="label">Also used</span> ${s.review.map((h) => `<button type="button" class="chip word-chip" data-h="${esc(h)}">${esc(h)}</button>`).join(" ")}</p>` : ""}
+    ${s.review ? `<p class="also"><span class="label">Also used</span> ${s.review.map((h) => `<button type="button" class="chip word-chip" data-h="${esc(h)}">${SPK_IN}<span class="ct">${esc(h)}</span></button>`).join(" ")}</p>` : ""}
   </section>`;
   if (s.frames.length) html += `<section class="block"><h3>Sentence patterns</h3><div class="frames">${s.frames.map((f, i) => frameHTML(f, i, s.id)).join("")}</div></section>`;
   if (s.youzai) html += `<section class="block"><h3>有 or 在? <span class="en-h">Same picture, two sentences</span></h3>${youzaiHTML()}</section>`;
@@ -180,7 +186,7 @@ function viewStation(id) {
 }
 document.addEventListener("click", (ev) => {
   const c = ev.target.closest(".word-chip"); if (!c) return;
-  const w = WORDS[c.dataset.h]; c.textContent = c.textContent === c.dataset.h && w ? `${c.dataset.h} ${w.p} · ${w.e}` : c.dataset.h; speak(c.dataset.h);
+  const w = WORDS[c.dataset.h]; const ct = c.querySelector(".ct"); ct.textContent = ct.textContent === c.dataset.h && w ? `${c.dataset.h} ${w.p} · ${w.e}` : c.dataset.h; speak(c.dataset.h);
 });
 
 function youzaiHTML() {
@@ -228,7 +234,7 @@ function wordQ(h) {
   if (type === "meaning") return { ...base, kind: "What does this mean?", en: "", hintPy: w.p, prompt: `<span class="q-zh">${esc(h)}</span>`, opts: opts.map((o) => ({ t: o.e, ok: o === w })) };
   if (type === "reverse") return { ...base, kind: "Which word means this?", en: "", prompt: `<span class="q-en">${esc(w.e)}</span>`, opts: opts.map((o) => ({ t: o.h, p: o.p, zh: true, ok: o === w })) };
   if (type === "pinyin") return { ...base, kind: "Pick the characters for this pinyin", en: "", noHint: true, prompt: `<span class="q-py">${esc(w.p)}</span>`, opts: opts.map((o) => ({ t: o.h, p: o.p, zh: true, ok: o === w })) };
-  return { ...base, kind: "Listen and pick the word", en: "", listen: h, prompt: `<button type="button" class="btn ghost play" data-say="${esc(h)}">▶ Play again</button>`, opts: opts.map((o) => ({ t: o.h, p: o.p, zh: true, ok: o === w })) };
+  return { ...base, kind: "Listen and pick the word", en: "", listen: h, prompt: `<button type="button" class="btn ghost play" data-say="${esc(h)}">${SPK_SVG} Play again</button>`, opts: opts.map((o) => ({ t: o.h, p: o.p, zh: true, ok: o === w })) };
 }
 function grammarQ(sid, kind, i) {
   const s = ST[sid];
@@ -327,7 +333,7 @@ function finishOrder(ok) {
   const hb = document.getElementById("hint"); if (hb) hb.remove();
   const last = quiz.i === quiz.qs.length - 1;
   $(".q-feedback").innerHTML = `${first ? '<p class="fb-ok">Correct!</p>' : ok ? '<p class="fb-ok">Correct after a retry. This one comes back tomorrow.</p>' : '<p class="fb-no">Here is the answer.</p>'}
-    <p class="fb-word"><span class="zh">${esc(zh)}</span><br><span class="py-always">${esc(py)}</span><br>${esc(q.x.en)}</p>
+    <p class="fb-word"><span class="zh">${esc(zh)}</span>${spk(zh)}<br><span class="py-always">${esc(py)}</span><br>${esc(q.x.en)}</p>
     <button type="button" class="btn primary next">${last ? "See results" : "Next"}</button>`;
   $(".next").focus();
 }
@@ -343,7 +349,7 @@ document.addEventListener("click", (ev) => {
 });
 function showQ() {
   const q = quiz.qs[quiz.i];
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : "#map";
   main.innerHTML = `<a class="back" href="${back}">← Leave</a>
   <section class="quiz">
     <div class="q-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${quiz.qs.length}" aria-valuenow="${quiz.i}"><i style="width:${(quiz.i / quiz.qs.length) * 100}%"></i></div>
@@ -366,7 +372,7 @@ document.addEventListener("click", (ev) => {
   if (!o.ok) b.classList.add("wrong");
   grade(q.id, o.ok, q.hinted); const hb = document.getElementById("hint"); if (hb) hb.remove(); if (o.ok) quiz.right++; else quiz.wrong.push(q);
   let fb = o.ok ? `<p class="fb-ok">Correct!</p>` : `<p class="fb-no">Not quite.</p>`;
-  if (q.answer) fb += `<p class="fb-word"><span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</p>`;
+  if (q.answer) fb += `<p class="fb-word">${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</p>`;
   if (q.after) fb += `<p class="fb-word"><span class="zh">${esc(q.after)}</span></p>`;
   const last = quiz.i === quiz.qs.length - 1;
   fb += `<button type="button" class="btn primary next">${last ? "See results" : "Next"}</button>`;
@@ -383,14 +389,14 @@ document.addEventListener("click", (ev) => {
     store.reviews++; save();
   }
   const n = quiz.qs.length, r = quiz.right;
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : "#map";
   main.innerHTML = `<section class="done">
     <h2>${r}/${n}</h2>
     <p>${r === n ? "All correct!" : r >= n * 0.7 ? "Well done." : "Good effort. The words you missed will come back in your next review."}</p>
     ${quiz.mode === "review" ? `<p class="streak"><b>${store.streak}</b> day streak</p>` : ""}
-    ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li><span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li><span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
+    ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li>${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li>${q.type === "order" ? spk(q.after) : ""}<span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
     ${quiz.mode === "station" ? (() => { const ss = stationStats(ST[quiz.sid]); return `<p class="hint">You have practised <b>${ss.p}</b> of ${ss.n} items in this station${ss.p < ss.n ? ". The next set starts with the ones you haven't done yet." : "."}</p>`; })() : ""}
-    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">Back to map</a>`}</div>
+    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" ? "Back to final review" : "Back to map"}</a>`}</div>
   </section>`;
   quiz = null;
 });
@@ -429,7 +435,7 @@ function restoreCode(code) {
   store = { items, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
   save();
 }
-const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip"><span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
+const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip">${spk(h)}<span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
 function viewProgress(msg) {
   setTab("progress");
   const sts = OPEN.map((s) => ({ s, ...stationStats(s) }));
@@ -485,6 +491,52 @@ document.addEventListener("click", async (ev) => {
   if (ev.target.id === "reset-yes") { store = { items: {}, streak: 0, lastDay: -1, reviews: 0, pinyin: store.pinyin }; save(); viewProgress(); }
 });
 
+
+// ───────── final review: word wall + sentence building ─────────
+store.flags = store.flags || {};
+// A word needs work if the student marked it, the last answer was wrong, or it was ever wrong and isn't learned yet.
+const needsWork = (h) => { const it = item("w:" + h); return !!store.flags[h] || (it.seen > 0 && it.b === 0) || ((it.w || 0) > 0 && it.b < 2); };
+const zoneStations = (z) => OPEN.filter((s) => z === "all" || s.zone === z);
+const zoneWords = (z) => [...new Set(zoneStations(z).flatMap(stWords))].filter((h) => WORDS[h]);
+const fin = { z: "all", only: false, oz: "all" };
+function wallCard(h) {
+  const w = WORDS[h]; const fl = !!store.flags[h];
+  const cls = needsWork(h) ? " need" : known(h) ? " known" : "";
+  return `<div class="wcard${cls}"><button type="button" class="word" data-h="${esc(h)}" aria-label="${esc(h)}, ${esc(w.e)}">${SPK_IN}<span class="w-zh">${esc(h)}</span><span class="py w-py">${esc(w.p)}</span><span class="w-en">${esc(w.e)}</span></button>
+    <button type="button" class="flag" data-flag="${esc(h)}" aria-pressed="${fl}">${fl ? "★ Not sure" : "☆ Not sure?"}</button></div>`;
+}
+function viewFinal() {
+  setTab("final");
+  const zs = [["all", "All units", "全部"], ...ZONES.map((z) => [z.id, z.name, z.zh])];
+  const chips = (cur, attr) => zs.map(([id, n, zh]) => `<button type="button" class="chip zchip" data-${attr}="${id}" aria-pressed="${cur === id}">${esc(zh)} <span class="en">${esc(n)}</span></button>`).join("");
+  const words = zoneWords(fin.z); const need = words.filter(needsWork); const shown = fin.only ? need : words;
+  const os = sentItems(zoneStations(fin.oz)); const ok = os.filter(knownId).length;
+  main.innerHTML = `<section class="block"><h2>总复习 · Final review</h2><p class="hint">The final exam covers everything from Week 1. Use the word wall to find the words you still need, then practise sentences unit by unit or all mixed.</p></section>
+  <section class="block"><h3>生词墙 · Word wall</h3>
+    <p class="hint"><b class="k-need">Red</b> = words to practise: you got them wrong, or you marked them ★ Not sure. <b class="k-ok">Green</b> = learned. Tap a word for its pinyin and meaning. Tap ☆ to mark a word you haven't remembered yet; tap it again when you know it.</p>
+    <div class="zrow">${chips(fin.z, "wz")}</div>
+    <div class="wall-bar"><label class="only"><input type="checkbox" id="only"${fin.only ? " checked" : ""}> Only words to practise (${need.length} of ${words.length})</label>
+      ${need.length ? `<a class="btn primary small" href="#fw-${fin.z}">Practise these words</a>` : ""}</div>
+    <div class="words wall">${shown.length ? shown.map(wallCard).join("") : '<p class="hint">Nothing to practise here. Well done!</p>'}</div>
+  </section>
+  <section class="block"><h3>排词成句 · Sentence building</h3>
+    <p class="hint">Put the words in the right order. Choose one unit, or mix all units.</p>
+    <div class="zrow">${chips(fin.oz, "oz")}</div>
+    <p class="hint">${os.length} sentences · ${ok} learned</p>
+    ${os.length ? `<a class="btn primary" href="#fo-${fin.oz}">Start: ${Math.min(10, os.length)} sentences</a>` : '<p class="hint">No sentences in this unit yet.</p>'}
+  </section>`;
+}
+function viewFinalKeep() { const y = window.scrollY; viewFinal(); window.scrollTo(0, y); }
+document.addEventListener("click", (ev) => {
+  const f = ev.target.closest("[data-flag]");
+  if (f) { const h = f.dataset.flag; if (store.flags[h]) delete store.flags[h]; else store.flags[h] = true; save(); return viewFinalKeep(); }
+  const wz = ev.target.closest("[data-wz]"); if (wz) { fin.z = wz.dataset.wz; return viewFinalKeep(); }
+  const oz = ev.target.closest("[data-oz]"); if (oz) { fin.oz = oz.dataset.oz; return viewFinalKeep(); }
+});
+document.addEventListener("change", (ev) => { if (ev.target.id === "only") { fin.only = ev.target.checked; viewFinalKeep(); } });
+const buildFinalWords = (z) => priority(zoneWords(z).filter(needsWork).map((h) => "w:" + h)).slice(0, 10).map((id) => wordQ(id.slice(2)));
+const buildFinalOrder = (z) => priority(sentItems(zoneStations(z))).slice(0, 10).map(orderQ);
+
 // ───────── pinyin toggle & routing ─────────
 const pyBtn = $("#pinyin");
 function applyPinyin() { document.body.classList.toggle("show-py", !!store.pinyin); pyBtn.setAttribute("aria-pressed", !!store.pinyin); }
@@ -495,6 +547,8 @@ function route() {
   const h = location.hash.slice(1);
   if (h === "review") { setTab("review"); return startQuiz(buildReview(), "review"); }
   if (h === "progress") return viewProgress();
+  if (h === "final") { quiz = null; return viewFinal(); }
+  if (h.startsWith("fw-") || h.startsWith("fo-")) { setTab("final"); const z = h.slice(3); const qs = h[1] === "w" ? buildFinalWords(z) : buildFinalOrder(z); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, "final"); } return viewFinal(); }
   if (h.startsWith("s-")) return viewStation(h.slice(2));
   if (h.startsWith("p-") && ST[h.slice(2)]) { setTab("map"); return startQuiz(buildPractice(h.slice(2)), "station", h.slice(2)); }
   quiz = null; viewMap();
