@@ -35,18 +35,23 @@ const practised = (h) => item("w:" + h).seen > 0;
 const itemIds = (st) => [...stWords(st).map((h) => "w:" + h), ...grammarItems([st]).map(idOf), ...sentItems([st])];
 const knownId = (id) => item(id).b >= 2;
 const seenId = (id) => item(id).seen > 0;
+const onceId = (id) => item(id).b === 1; // right once, needs another day
 function stationStats(st) {
   const ids = itemIds(st); const k = ids.filter(knownId).length; const p = ids.filter(seenId).length;
   const part = (pre) => { const x = ids.filter((id) => pre.some((q) => id.startsWith(q))); return { k: x.filter(knownId).length, p: x.filter(seenId).length, n: x.length }; };
-  return { k, p, n: ids.length, mastered: ids.length > 0 && k / ids.length >= 0.8, started: p > 0, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
+  return { k, p, once: ids.filter(onceId).length, n: ids.length, mastered: ids.length > 0 && k / ids.length >= 0.8, started: p > 0, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
 }
 function allStats() {
   const ids = [...new Set(OPEN.flatMap(itemIds))];
   const part = (pre) => { const x = ids.filter((id) => pre.some((q) => id.startsWith(q))); return { k: x.filter(knownId).length, p: x.filter(seenId).length, n: x.length }; };
-  return { k: ids.filter(knownId).length, p: ids.filter(seenId).length, n: ids.length, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
+  return { k: ids.filter(knownId).length, p: ids.filter(seenId).length, once: ids.filter(onceId).length, n: ids.length, w: part(["w:"]), g: part(["f:", "e:"]), o: part(["o:"]) };
 }
-// two-layer bar: solid = known, light = practised but not yet known
-const meter2 = (k, p, n) => `<span class="meter" role="img" aria-label="${k} learned, ${p} practised, of ${n} items"><i style="width:${n ? (k / n) * 100 : 0}%"></i><i class="pr" style="width:${n ? ((p - k) / n) * 100 : 0}%"></i></span>`;
+// three-layer bar: solid = learned, middle = right once, light = practised
+const pc = (x, n) => (n ? Math.max(0, x) / n * 100 : 0);
+const meter2 = (k, p, n, o = 0) => `<span class="meter" role="img" aria-label="${p} practised, ${o} right once, ${k} learned, of ${n} items"><i style="width:${pc(k, n)}%"></i><i class="st" style="width:${pc(o, n)}%"></i><i class="pr" style="width:${pc(p - k - o, n)}%"></i></span>`;
+// right once today: these lock in as learned if they are right again on another day
+const lockTomorrow = () => Object.values(store.items).filter((it) => it.b === 1 && it.last === today()).length;
+const lockLine = () => { const x = lockTomorrow(); return x ? `<p class="lock">🔒 <b>${x}</b> right today. Get them right again tomorrow and they lock in as <b>learned</b>.</p>` : ""; };
 
 // ───────── speech (vocabulary only) ─────────
 let zhVoice = null;
@@ -130,7 +135,7 @@ function viewMap() {
       <div class="today-side"><div class="stat"><b>${store.streak}</b><span>day<br>streak</span></div>
       <a class="btn primary" href="#review">Start</a></div>
     </section>
-    <p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. You have learned <b>${A.k}</b> of ${A.n} items so far (words, grammar and sentences).</p>`;
+    <p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. ${A.p ? `You have practised <b>${A.p}</b> of ${A.n} items · <b>${A.once}</b> right once · <b>${A.k}</b> learned.` : `Start with the Daily review or open any station.`}</p>${lockLine()}`;
   ZONES.forEach((z) => {
     const sts = STATIONS.filter((s) => s.zone === z.id);
     html += `<section class="line" style="--c: var(${z.color})"><h3 class="line-name"><span class="line-badge">${esc(z.name)}</span><span class="en zh">${esc(z.zh)}</span></h3><ol class="stops">`;
@@ -144,8 +149,8 @@ function viewMap() {
       const label = ss.mastered ? "Mastered" : ss.started ? "Learning" : "Not reviewed yet";
       html += `<li class="stop ${state}"><a href="#s-${s.id}"><span class="dot" aria-hidden="true"></span><div class="stop-body">
         <span class="stop-title">${esc(s.title)}</span><span class="en">${esc(s.en)} · ${esc(s.when)}</span>
-        ${meter2(ss.k, ss.p, ss.n)}
-        <span class="pill ${state}">${label} · ${ss.k}/${ss.n} learned${ss.p > ss.k ? ` · ${ss.p} practised` : ""}</span></div></a></li>`;
+        ${meter2(ss.k, ss.p, ss.n, ss.once)}
+        <span class="pill ${state}">${label} · ${ss.p}/${ss.n} practised${ss.once ? ` · ${ss.once} right once` : ""}${ss.k ? ` · ${ss.k} learned` : ""}</span></div></a></li>`;
     });
     html += `</ol></section>`;
   });
@@ -169,7 +174,7 @@ function viewStation(id) {
   const ss = stationStats(s);
   let html = `<a class="back" href="#map">← Map</a>
   <header class="st-head" style="--c: var(${z.color})"><span class="line-badge">${esc(z.name)}</span>
-    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.k}/${ss.n} learned</p></header>
+    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.p}/${ss.n} practised · ${ss.once} right once · ${ss.k} learned</p></header>
   <section class="block"><h3>Words</h3>
     <p class="hint">Tap a word to see the pinyin and meaning${zhVoice ? " and hear it" : ""}.</p>
     <div class="words">${stWords(s).map(wordCard).join("")}</div>
@@ -396,6 +401,7 @@ document.addEventListener("click", (ev) => {
     ${quiz.mode === "review" ? `<p class="streak"><b>${store.streak}</b> day streak</p>` : ""}
     ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li>${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li>${q.type === "order" ? spk(q.after) : ""}<span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
     ${quiz.mode === "station" ? (() => { const ss = stationStats(ST[quiz.sid]); return `<p class="hint">You have practised <b>${ss.p}</b> of ${ss.n} items in this station${ss.p < ss.n ? ". The next set starts with the ones you haven't done yet." : "."}</p>`; })() : ""}
+    ${lockLine()}
     <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" ? "Back to final review" : "Back to map"}</a>`}</div>
   </section>`;
   quiz = null;
@@ -414,25 +420,31 @@ const FORM = "https://docs.google.com/forms/d/e/1FAIpQLSejnVcOge5lQ-8iStTud00mxY
 const ENTRY = { code: "entry.67431962", words: "entry.1732415521", stations: "entry.797420897", reviews: "entry.754972983", detail: "entry.1174386476", practise: "entry.1853318961", wrong: "entry.425955698", pending: "entry.1274056252" };
 const b64e = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const b64d = (b) => { b = b.replace(/-/g, "+").replace(/_/g, "/"); while (b.length % 4) b += "="; return new TextDecoder().decode(Uint8Array.from(atob(b), (c) => c.charCodeAt(0))); };
-// Code format: "M2." + base64url("2|day|streak|reviews|lastDay|<hanzi><b>…|<grammarId>=<b>,…")
+// Code format v3: "M1." + base64url("3|day|streak|reviews|lastDay|<hanzi><b>[!]…|<id>=<b>[!],…|<flagged hanzi>,…")
+// b = 0–5 (0 = practised, last answer wrong); "!" = was wrong at least once. v2 codes (b > 0 only) still restore.
 function makeCode() {
   let w = ""; const g = [];
   for (const [id, it] of Object.entries(store.items)) {
-    if (!(it.b > 0)) continue;
-    if (id.startsWith("w:")) w += id.slice(2) + it.b; else g.push(id + "=" + it.b);
+    if (!(it.seen > 0) && !(it.b > 0)) continue;
+    const v = (it.b || 0) + ((it.w || 0) > 0 ? "!" : "");
+    if (id.startsWith("w:")) w += id.slice(2) + v; else g.push(id + "=" + v);
   }
-  return "M1." + b64e(["2", today(), store.streak, store.reviews, store.lastDay, w, g.join(",")].join("|"));
+  const f = Object.keys(store.flags || {}).filter((h) => store.flags[h]).join(",");
+  return "M1." + b64e(["3", today(), store.streak, store.reviews, store.lastDay, w, g.join(","), f].join("|"));
 }
 function restoreCode(code) {
-  const c = String(code || "").trim();
+  const c = String(code || "").replace(/\s+/g, "");
   if (!c.startsWith("M1.")) throw new Error("bad");
   const parts = b64d(c.slice(3)).split("|");
-  if (parts[0] !== "2" || parts.length < 7) throw new Error("bad");
-  const t = today(); const items = {};
-  const put = (id, b) => { const n = Math.max(0, Math.min(5, +b || 0)); if (n) items[id] = { b: n, d: t, seen: 1, last: t - 1 }; };
-  for (const m of parts[5].matchAll(/(\D+)(\d)/g)) put("w:" + m[1], m[2]);
+  if (!(parts[0] === "2" || parts[0] === "3") || parts.length < 7) throw new Error("bad");
+  const t = today(); const made = Number.isFinite(+parts[1]) ? Math.min(+parts[1], t) : t - 1; const items = {};
+  // last = the day the code was made, so an answer on that same day doesn't count as a second day
+  const put = (id, v) => { const m = String(v).match(/^(\d)(!?)$/); if (!m) return; const n = Math.min(5, +m[1]);
+    const it = { b: n, d: n ? made + INTERVALS[n] : t, seen: 1, last: made }; if (m[2] || n === 0) it.w = 1; items[id] = it; };
+  for (const m of parts[5].matchAll(/(\D+?)(\d)(!?)/g)) put("w:" + m[1], m[2] + m[3]);
   for (const kv of parts[6].split(",").filter(Boolean)) { const k = kv.lastIndexOf("="); put(kv.slice(0, k), kv.slice(k + 1)); }
-  store = { items, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
+  const flags = {}; (parts[7] || "").split(",").filter(Boolean).forEach((h) => { flags[h] = true; });
+  store = { items, flags, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
   save();
 }
 const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip">${spk(h)}<span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
@@ -448,7 +460,7 @@ function viewProgress(msg) {
   const settlingW = Object.keys(WORDS).filter((h) => item("w:" + h).b === 1).slice(0, 25);
   const params = new URLSearchParams({ usp: "pp_url" });
   params.set(ENTRY.code, code);
-  params.set(ENTRY.words, `${A.k}/${A.n} learned · ${A.p} practised | words ${A.w.k}/${A.w.n} · grammar ${A.g.k}/${A.g.n} · sentences ${A.o.k}/${A.o.n}`);
+  params.set(ENTRY.words, `${A.p}/${A.n} practised · ${A.once} right once · ${A.k} learned | learned: words ${A.w.k}/${A.w.n} · grammar ${A.g.k}/${A.g.n} · sentences ${A.o.k}/${A.o.n}`);
   params.set(ENTRY.stations, `${m}/${sts.length}`);
   params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
@@ -458,10 +470,12 @@ function viewProgress(msg) {
   const formUrl = FORM + "?" + params.toString();
   main.innerHTML = `<section class="block"><h2>My progress</h2>
     <div class="tiles"><div class="tile"><b>${A.p}</b><span>/${A.n}<br>practised</span></div>
+    <div class="tile"><b>${A.once}</b><span>right once<br>lock in tomorrow</span></div>
     <div class="tile"><b>${A.k}</b><span>/${A.n}<br>learned</span></div>
     <div class="tile"><b>${m}</b><span>/${sts.length}<br>stations mastered</span></div>
     <div class="tile"><b>${store.streak}</b><span>day<br>streak</span></div></div>
-    <p class="hint">Each station has words, grammar and sentences to learn. <b>Practised</b> = you have answered it at least once. <b>Learned</b> = you got it right on two different days, so something you practise today is learned when you get it right again on another day. A station is mastered when you have learned 80% of it.</p>
+    <p class="hint">Three steps for every word, grammar point and sentence: <b>Practised</b> = you have answered it. <b>Right once</b> = you got it right; it's on its way. <b>Learned</b> = you got it right again on another day, so it really stays in your memory. A station is mastered when you have learned 80% of it.</p>
+    ${lockLine()}
   </section>
   ${FORM ? `  <section class="block"><h3>Send to your teacher</h3>
     <p class="hint">The form opens with your progress already filled in. Sign in with your school account, check it, then press Submit.</p>
@@ -470,7 +484,7 @@ function viewProgress(msg) {
   <section class="block"><h3>My progress code</h3>
     <p class="hint">Your progress is saved only in this browser. Keep this code: it brings your progress back on a new device or browser.</p>
     <div class="code"><code id="pcode" style="font-family:ui-monospace,monospace;font-size:12px;word-break:break-all;max-height:4.6em;overflow:auto">${esc(code)}</code><button type="button" class="btn ghost small" id="copy">Copy</button></div>
-    <p class="hint" style="margin-top:12px">New device? Paste your code here:</p>
+    <p class="hint" style="margin-top:12px">New computer or lost your progress? Paste your code here (or ask your teacher for your last code):</p>
     <div class="code"><input id="rcode" type="text" placeholder="M1.…" style="flex:1;min-width:220px;font:inherit;padding:6px 8px;border:1px solid var(--line, #d1d5db);border-radius:6px"><button type="button" class="btn ghost small" id="restore">Restore</button></div>
     ${msg ? `<p class="hint" role="status" style="margin-top:8px"><b>${esc(msg)}</b></p>` : ""}
   </section>
@@ -478,7 +492,7 @@ function viewProgress(msg) {
     ${wrongW.length ? `<p class="hint"><b>Got wrong last time</b> (${wrongW.length})</p><div class="wlist">${wrongW.map(wChip).join("")}</div>` : ""}
     ${settlingW.length ? `<p class="hint" style="margin-top:8px"><b>Right once, get it right again on another day</b> (${settlingW.length})</p><div class="wlist">${settlingW.map(wChip).join("")}</div>` : ""}
   </section>` : ""}
-  <section class="block"><h3>By station</h3><p class="hint">Dark bar = learned · light bar = practised</p><ul class="plist">${sts.map((x) => `<li><a href="#s-${x.s.id}"><span class="pname"><span class="zh">${esc(x.s.title)}</span><span class="en">${esc(x.s.en)}</span></span>${meter2(x.k, x.p, x.n)}<span class="num">${x.k}/${x.n}${x.p > x.k ? `<small>${x.p} practised</small>` : ""}</span>${x.mastered ? '<span class="tick">✓</span>' : "<span></span>"}</a></li>`).join("")}</ul></section>
+  <section class="block"><h3>By station</h3><p class="hint">Dark = learned · middle = right once · light = practised</p><ul class="plist">${sts.map((x) => `<li><a href="#s-${x.s.id}"><span class="pname"><span class="zh">${esc(x.s.title)}</span><span class="en">${esc(x.s.en)}</span></span>${meter2(x.k, x.p, x.n, x.once)}<span class="num">${x.p}/${x.n}<small>${x.once} once · ${x.k} learned</small></span>${x.mastered ? '<span class="tick">✓</span>' : "<span></span>"}</a></li>`).join("")}</ul></section>
   <section class="block reset"><button type="button" class="btn ghost small" id="reset">Reset my progress</button><span id="reset-confirm" hidden> Are you sure? <button type="button" class="btn danger small" id="reset-yes">Yes, reset</button></span></section>`;
 }
 document.addEventListener("click", async (ev) => {
@@ -488,7 +502,7 @@ document.addEventListener("click", async (ev) => {
     catch (e) { viewProgress("That code doesn't work. Copy the whole code, starting with M1."); }
   }
   if (ev.target.id === "reset") $("#reset-confirm").hidden = false;
-  if (ev.target.id === "reset-yes") { store = { items: {}, streak: 0, lastDay: -1, reviews: 0, pinyin: store.pinyin }; save(); viewProgress(); }
+  if (ev.target.id === "reset-yes") { store = { items: {}, flags: {}, streak: 0, lastDay: -1, reviews: 0, pinyin: store.pinyin }; save(); viewProgress(); }
 });
 
 
