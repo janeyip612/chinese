@@ -5,6 +5,8 @@ const split = (x) => { const [h, p, e] = x.split("|"); return { h, p: p || "", e
 const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const today = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 const INTERVALS = [0, 1, 2, 4, 7, 14];
+// Teacher setting in data.js. "review": first try of the day right = learned. Otherwise: right on two different days.
+const REVIEW = typeof MODE !== "undefined" && MODE === "review";
 
 // ───────── content index ─────────
 const WORDS = {};          // hanzi -> {h,p,e,st}
@@ -19,10 +21,19 @@ let store = { items: {}, streak: 0, lastDay: -1, reviews: 0, pinyin: true };
 try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
 const item = (id) => store.items[id] || { b: 0, d: 0, seen: 0 };
-function grade(id, ok, hinted) {
+function grade(id, ok, hinted, retry) {
   const it = item(id);
-  it.seen++;
   const t = today();
+  const firstToday = it.last !== t;
+  it.seen++;
+  if (REVIEW) {
+    // pinyin hint is fine (the exam has pinyin); a retry or a second try on the same day is not
+    if (ok && !retry && firstToday) { it.b = Math.max(it.b, 2); it.d = t + INTERVALS[it.b]; }
+    else if (ok) { it.d = t + 1; }
+    else { it.b = 0; it.d = t; it.w = (it.w || 0) + 1; }
+    it.last = t; store.items[id] = it; save(); return;
+  }
+  hinted = hinted || retry;
   if (ok && hinted) { it.d = t + 1; }
   else if (ok) { if (it.last !== t || it.b === 0) it.b = Math.min(it.b + 1, 5); it.d = t + INTERVALS[it.b]; }
   else { it.b = 0; it.d = t; it.w = (it.w || 0) + 1; }
@@ -35,7 +46,7 @@ const practised = (h) => item("w:" + h).seen > 0;
 const itemIds = (st) => [...stWords(st).map((h) => "w:" + h), ...grammarItems([st]).map(idOf), ...sentItems([st])];
 const knownId = (id) => item(id).b >= 2;
 const seenId = (id) => item(id).seen > 0;
-const onceId = (id) => item(id).b === 1; // right once, needs another day
+const onceId = (id) => !REVIEW && item(id).b === 1; // right once, needs another day
 function stationStats(st) {
   const ids = itemIds(st); const k = ids.filter(knownId).length; const p = ids.filter(seenId).length;
   const part = (pre) => { const x = ids.filter((id) => pre.some((q) => id.startsWith(q))); return { k: x.filter(knownId).length, p: x.filter(seenId).length, n: x.length }; };
@@ -51,7 +62,7 @@ const pc = (x, n) => (n ? Math.max(0, x) / n * 100 : 0);
 const meter2 = (k, p, n, o = 0) => `<span class="meter" role="img" aria-label="${p} practised, ${o} right once, ${k} learned, of ${n} items"><i style="width:${pc(k, n)}%"></i><i class="st" style="width:${pc(o, n)}%"></i><i class="pr" style="width:${pc(p - k - o, n)}%"></i></span>`;
 // right once today: these lock in as learned if they are right again on another day
 const lockTomorrow = () => Object.values(store.items).filter((it) => it.b === 1 && it.last === today()).length;
-const lockLine = () => { const x = lockTomorrow(); return x ? `<p class="lock">🔒 <b>${x}</b> right today. Get them right again tomorrow and they lock in as <b>learned</b>.</p>` : ""; };
+const lockLine = () => { if (REVIEW) return ""; const x = lockTomorrow(); return x ? `<p class="lock">🔒 <b>${x}</b> right today. Get them right again tomorrow and they lock in as <b>learned</b>.</p>` : ""; };
 
 // ───────── speech (vocabulary only) ─────────
 let zhVoice = null;
@@ -125,19 +136,37 @@ document.addEventListener("click", (ev) => {
 const main = $("#main");
 function setTab(name) { document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-current", t.dataset.tab === name ? "page" : "false")); }
 
+// ───────── map lines ─────────
+// Review mode: one line per exam unit (Semester Exam Planner), stations in week order.
+// Stations outside the exam keep their own line (locked ones join the last unit).
+function mapLines() {
+  const base = ZONES.map((z) => ({ ...z, sts: STATIONS.filter((s) => s.zone === z.id) }));
+  if (!(REVIEW && typeof EXAM !== "undefined" && EXAM.units)) return base;
+  const used = new Set();
+  const lines = EXAM.units.map((u, i) => {
+    const sts = u.stations.map((id) => ST[id]).filter(Boolean).sort((a, b) => a.week - b.week);
+    sts.forEach((st) => used.add(st.id));
+    return { id: "unit" + i, name: u.label, zh: u.zh || "", color: (ZONES[i % ZONES.length] || ZONES[0]).color, sts };
+  });
+  const locked = STATIONS.filter((st) => !used.has(st.id) && st.locked);
+  if (locked.length && lines.length) { lines[lines.length - 1].sts.push(...locked); locked.forEach((st) => used.add(st.id)); }
+  base.forEach((z) => { const rest = z.sts.filter((st) => !used.has(st.id)); if (rest.length) lines.push({ ...z, name: z.name + " · basics", sts: rest }); });
+  return lines;
+}
+const lineOf = (st) => mapLines().find((z) => z.sts.includes(st)) || ZONES.find((z) => z.id === st.zone);
 function viewMap() {
   setTab("map");
   const A = allStats();
-  let html = `<section class="today">
+  let html = REVIEW ? "" : `<section class="today">
       <div><h2>Daily review</h2>
       <p>10 quick questions, about 5 minutes. They mix this week's focus, recent lessons and earlier weeks, and bring back the words you got wrong.</p>
       <p class="focus"><span class="label">This week's focus</span> ${FOCUS.stations.map((id) => `<a href="#s-${id}" class="chip">${esc(ST[id].title)}</a>`).join(" ")}<br><span class="en">${esc(FOCUS.why)}</span></p></div>
       <div class="today-side"><div class="stat"><b>${store.streak}</b><span>day<br>streak</span></div>
       <a class="btn primary" href="#review">Start</a></div>
-    </section>
-    <p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. ${A.p ? `You have practised <b>${A.p}</b> of ${A.n} items · <b>${A.once}</b> right once · <b>${A.k}</b> learned.` : `Start with the Daily review or open any station.`}</p>${lockLine()}`;
-  ZONES.forEach((z) => {
-    const sts = STATIONS.filter((s) => s.zone === z.id);
+    </section>`;
+  html += `<p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. ${REVIEW ? reviewIntro() : A.p ? `You have practised <b>${A.p}</b> of ${A.n} items · <b>${A.once}</b> right once · <b>${A.k}</b> learned.` : `Start with the Daily review or open any station.`}</p>${lockLine()}`;
+  mapLines().forEach((z) => {
+    const sts = z.sts;
     html += `<section class="line" style="--c: var(${z.color})"><h3 class="line-name"><span class="line-badge">${esc(z.name)}</span><span class="en zh">${esc(z.zh)}</span></h3><ol class="stops">`;
     sts.forEach((s) => {
       if (s.locked) {
@@ -170,11 +199,11 @@ document.addEventListener("click", (ev) => {
 function viewStation(id) {
   const s = ST[id]; if (!s || s.locked) return viewMap();
   setTab("map");
-  const z = ZONES.find((z) => z.id === s.zone);
+  const z = lineOf(s);
   const ss = stationStats(s);
   let html = `<a class="back" href="#map">← Map</a>
   <header class="st-head" style="--c: var(${z.color})"><span class="line-badge">${esc(z.name)}</span>
-    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.p}/${ss.n} practised · ${ss.once} right once · ${ss.k} learned</p></header>
+    <h2>${esc(s.title)}</h2><p class="en">${esc(s.en)} · ${esc(s.when)} · ${ss.p}/${ss.n} practised${ss.once ? ` · ${ss.once} right once` : ""} · ${ss.k} learned</p></header>
   <section class="block"><h3>Words</h3>
     <p class="hint">Tap a word to see the pinyin and meaning${zhVoice ? " and hear it" : ""}.</p>
     <div class="words">${stWords(s).map(wordCard).join("")}</div>
@@ -330,7 +359,7 @@ function finishOrder(ok) {
   const first = ok && q.tries === 1;
   if (!ok) q.tray = q.x.t.map((_, k) => k);
   q.state = ok ? "ok" : "shown";
-  grade(q.id, ok, q.hinted || !first);
+  grade(q.id, ok, q.hinted, !first);
   const zh = q.x.t.map((t) => t[0]).join("") + q.x.e; const py = q.x.t.map((t) => t[1]).filter(Boolean).join(" ");
   q.after = zh;
   if (first) quiz.right++; else quiz.wrong.push(q);
@@ -350,11 +379,11 @@ document.addEventListener("click", (ev) => {
   if (ev.target.id !== "hint" || !quiz) return;
   quiz.qs[quiz.i].hinted = true; document.querySelector(".quiz").classList.add("hinted");
   const h = document.querySelector(".q-hintpy"); if (h) h.hidden = false; ev.target.disabled = true;
-  ev.target.textContent = "Pinyin shown: this one comes back tomorrow";
+  ev.target.textContent = REVIEW ? "Pinyin shown" : "Pinyin shown: this one comes back tomorrow";
 });
 function showQ() {
   const q = quiz.qs[quiz.i];
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
   main.innerHTML = `<a class="back" href="${back}">← Leave</a>
   <section class="quiz">
     <div class="q-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${quiz.qs.length}" aria-valuenow="${quiz.i}"><i style="width:${(quiz.i / quiz.qs.length) * 100}%"></i></div>
@@ -386,6 +415,10 @@ document.addEventListener("click", (ev) => {
 });
 document.addEventListener("click", (ev) => {
   if (!ev.target.closest(".next") || !quiz) return;
+  if (quiz.mode === "fix") { // a wrong answer comes back later in the same set (at most twice)
+    const q = quiz.qs[quiz.i]; quiz.rep = quiz.rep || {};
+    if (quiz.wrong.includes(q) && (quiz.rep[q.id] || 0) < 2) { quiz.rep[q.id] = (quiz.rep[q.id] || 0) + 1; const again = qOf(q.id); again.repeat = true; quiz.qs.push(again); }
+  }
   quiz.i++;
   if (quiz.i < quiz.qs.length) return showQ();
   if (quiz.mode === "review") {
@@ -394,7 +427,7 @@ document.addEventListener("click", (ev) => {
     store.reviews++; save();
   }
   const n = quiz.qs.length, r = quiz.right;
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
   main.innerHTML = `<section class="done">
     <h2>${r}/${n}</h2>
     <p>${r === n ? "All correct!" : r >= n * 0.7 ? "Well done." : "Good effort. The words you missed will come back in your next review."}</p>
@@ -402,7 +435,8 @@ document.addEventListener("click", (ev) => {
     ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li>${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li>${q.type === "order" ? spk(q.after) : ""}<span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
     ${quiz.mode === "station" ? (() => { const ss = stationStats(ST[quiz.sid]); return `<p class="hint">You have practised <b>${ss.p}</b> of ${ss.n} items in this station${ss.p < ss.n ? ". The next set starts with the ones you haven't done yet." : "."}</p>`; })() : ""}
     ${lockLine()}
-    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" ? "Back to final review" : "Back to map"}</a>`}</div>
+    ${quiz.mode === "fix" ? `<p class="lock">Done for today. Tomorrow, get these right on the first try and they count as learned.</p>` : ""}
+    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" ? "Back to final review" : back === "#progress" ? "Back to My progress" : "Back to map"}</a>`}</div>
   </section>`;
   quiz = null;
 });
@@ -448,7 +482,101 @@ function restoreCode(code) {
   save();
 }
 const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip">${spk(h)}<span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
+// ───────── exam review (MODE "review") ─────────
+const dayOf = (iso) => { const [y, m, d] = iso.split("-").map(Number); return Math.floor(Date.UTC(y, m - 1, d) / 86400000); };
+const daysToExam = () => (typeof EXAM !== "undefined" ? dayOf(EXAM.date) - today() : null);
+function examStats() {
+  const partOf = (s) => EXAM.weights.find((w) => s.week >= w.from && s.week <= w.to) || null;
+  const units = EXAM.units.map((u) => {
+    const sts = u.stations.map((id) => ST[id]).filter((x) => x && !x.locked);
+    const ids = [...new Set(sts.flatMap(itemIds))];
+    return { ...u, sts, ids, n: ids.length, k: ids.filter(knownId).length, p: ids.filter(seenId).length };
+  });
+  const owner = {}; units.forEach((u) => u.sts.forEach((st) => itemIds(st).forEach((id) => { owner[id] = st; })));
+  const all = Object.keys(owner);
+  const partN = new Map(EXAM.weights.map((w) => [w, all.filter((id) => partOf(owner[id]) === w).length]));
+  const wt = (id) => { const w = partOf(owner[id]); return w ? w.weight / (partN.get(w) || 1) : 0; };
+  let tot = 0, got = 0; all.forEach((id) => { const x = wt(id); tot += x; if (knownId(id)) got += x; });
+  return { units, all, owner, wt, ready: tot ? Math.round((got / tot) * 100) : 0 };
+}
+const qOf = (id) => { if (id.startsWith("w:")) return wordQ(id.slice(2)); if (id.startsWith("o:")) return orderQ(id); const [k, sid, i] = id.split(":"); return grammarQ(sid, k, +i); };
+// items to fix: practised but not learned yet, last-answered-wrong first
+const fixIds = (es) => es.all.filter((id) => item(id).seen > 0 && item(id).b < 2);
+function buildFix() {
+  const ids = fixIds(examStats());
+  const wrong = ids.filter((id) => item(id).b === 0 && (item(id).w || 0) > 0);
+  return [...priority(wrong), ...priority(ids.filter((id) => !wrong.includes(id)))].slice(0, 10).map(qOf);
+}
+// new items: the station whose unpractised items count most for the exam
+function newStation(es) {
+  let best = null, bv = 0;
+  es.units.forEach((u) => u.sts.forEach((st) => { const ids = itemIds(st).filter((id) => !(item(id).seen > 0)); const v = ids.reduce((a, id) => a + es.wt(id), 0); if (v > bv) { bv = v; best = { s: st, ids }; } }));
+  return best;
+}
+function buildNew() { const ns = newStation(examStats()); return ns ? shuffle(ns.ids).slice(0, 10).map(qOf) : []; }
+function hskStats() {
+  if (typeof HSK1 === "undefined") return null;
+  const onMap = HSK1.filter((h) => WORDS[h]);
+  return { n: HSK1.length, map: onMap.length, k: onMap.filter(known).length, p: onMap.filter(practised).length };
+}
+function reviewIntro() {
+  if (typeof EXAM === "undefined") return "";
+  const es = examStats(); const d = daysToExam();
+  return `<b>Final exam review:</b> you are <b>${es.ready}%</b> ready${d > 0 ? ` · ${d} days to go` : ""}. Practise a station, then <a href="#progress">see what's left →</a>`;
+}
+function viewProgressReview(msg) {
+  setTab("progress");
+  const es = examStats(); const d = daysToExam(); const A = allStats(); const H = hskStats();
+  const sts = OPEN.map((s) => ({ s, ...stationStats(s) })); const m = sts.filter((x) => x.mastered).length;
+  const fixN = fixIds(es).length; const newN = es.all.filter((id) => !(item(id).seen > 0)).length; const ns = newStation(es);
+  const code = makeCode();
+  const wrongW = Object.keys(WORDS).filter((h) => { const it = item("w:" + h); return it.seen > 0 && it.b === 0 && (it.w || 0) > 0; }).slice(0, 25);
+  const notYetW = Object.keys(WORDS).filter((h) => { const it = item("w:" + h); return it.seen > 0 && it.b < 2 && !wrongW.includes(h); }).slice(0, 25);
+  const params = new URLSearchParams({ usp: "pp_url" });
+  params.set(ENTRY.code, code);
+  params.set(ENTRY.words, `exam ready ${es.ready}% · ${es.units.map((u) => `${u.label.split(" · ")[0]} ${u.k}/${u.n}`).join(" · ")} · to fix ${fixN} · not practised ${newN} | learned ${A.k}/${A.n} · practised ${A.p}${H ? ` | HSK1 ${H.k}/${H.n}` : ""}`);
+  params.set(ENTRY.stations, `${m}/${sts.length}`);
+  params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
+  params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
+  params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Not yet learned: ${notYetW.join("、") || "none"}`);
+  if (ENTRY.wrong) params.set(ENTRY.wrong, wrongW.join("、") || "none");
+  if (ENTRY.pending) params.set(ENTRY.pending, notYetW.join("、") || "none");
+  const formUrl = FORM ? FORM + "?" + params.toString() : "";
+  const dateTxt = new Date(EXAM.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+  main.innerHTML = `<section class="block"><h2>Final exam review</h2>
+    <p class="hint">${esc(EXAM.name)}: from ${esc(dateTxt)}${d > 0 ? ` · <b>${d}</b> days to go` : ""}</p>
+    <div class="ready"><b>${es.ready}%</b><span>ready for the exam</span></div>
+    <ul class="plist exam">${es.units.map((u) => `<li><span class="pname"><span class="zh">${esc(u.label.split(" · ")[0])}</span><span class="en">${esc(u.label.split(" · ").slice(1).join(" · "))}</span></span>${meter2(u.k, u.p, u.n)}<span class="num">${u.k}/${u.n}<small>learned</small></span><span>${u.n && u.k === u.n ? "✓" : ""}</span></li>`).join("")}</ul>
+    <p class="hint"><b>Learned</b> = right on your first try of the day. A pinyin hint is fine: the exam paper has pinyin too. Weeks 1–8 count for 35% of the exam, Weeks 10–15 for 65%.</p>
+  </section>
+  <section class="block"><h3>What to review next</h3>
+    <h4 class="step">1 · By station</h4>
+    <p class="hint">Open a station on the map and practise it. Dark = learned · light = practised.</p>
+    <ul class="plist">${es.units.flatMap((u) => u.sts).map((st) => ({ s: st, ...stationStats(st) })).map((x) => `<li><a href="#s-${x.s.id}"><span class="pname"><span class="zh">${esc(x.s.title)}</span><span class="en">${esc(x.s.when)}</span></span>${meter2(x.k, x.p, x.n)}<span class="num">${x.k}/${x.n}<small>${x.p} practised</small></span>${x.n && x.k === x.n ? '<span class="tick">✓</span>' : "<span></span>"}</a></li>`).join("")}</ul>
+    <h4 class="step">2 · Fix my mistakes</h4>
+    ${fixN ? `<p><a class="btn primary" href="#fix">Fix my mistakes</a></p><p class="hint">${fixN} items you got wrong or haven't learned yet. A wrong answer comes back in the same set until you get it right. Something you fix today counts as learned when you get it right on the first try on another day.</p>` : `<p class="hint">No mistakes to fix right now.</p>`}
+    <h4 class="step">3 · Try new items</h4>
+    ${newN ? `<p><a class="btn ghost" href="#new">Try new items</a></p><p class="hint">${newN} exam items you haven't practised yet${ns ? ` · next: ${esc(ns.s.title)} (${esc(ns.s.when)})` : ""}.</p>` : `<p class="hint">You have practised every exam item. Well done!</p>`}
+  </section>
+  ${H ? `<section class="block"><h3>HSK 1 route</h3>
+    <ul class="plist exam"><li><span class="pname"><span class="zh">HSK 1</span><span class="en">300 words</span></span>${meter2(H.k, H.p, H.n)}<span class="num">${H.k}/${H.n}<small>learned</small></span><span></span></li></ul>
+    <p class="hint">Your map has ${H.map} of the 300 HSK 1 words so far. You will meet the rest next term, on the way to the HSK 1 test.</p>
+  </section>` : ""}
+  ${formUrl ? `<section class="block"><h3>Send to your teacher</h3>
+    <p class="hint">The form opens with your progress already filled in. Sign in with your school account, check it, then press Submit.</p>
+    <a class="btn primary" id="send" href="${esc(formUrl)}" target="_blank" rel="noopener">Send to teacher</a>
+  </section>` : ""}
+  <details class="block more"${msg ? " open" : ""}><summary>My progress code</summary>
+    <p class="hint">Your progress is saved only in this browser. Keep this code: it brings your progress back on a new computer.</p>
+    <div class="code"><code id="pcode" style="font-family:ui-monospace,monospace;font-size:12px;word-break:break-all;max-height:4.6em;overflow:auto">${esc(code)}</code><button type="button" class="btn ghost small" id="copy">Copy</button></div>
+    <p class="hint" style="margin-top:12px">New computer or lost your progress? Paste your code here (or ask your teacher for your last code):</p>
+    <div class="code"><input id="rcode" type="text" placeholder="${esc(code.slice(0, 3))}…" style="flex:1;min-width:220px;font:inherit;padding:6px 8px;border:1px solid var(--line, #d1d5db);border-radius:6px"><button type="button" class="btn ghost small" id="restore">Restore</button></div>
+    ${msg ? `<p class="hint" role="status" style="margin-top:8px"><b>${esc(msg)}</b></p>` : ""}
+  </details>
+  <section class="block reset"><button type="button" class="btn ghost small" id="reset">Reset my progress</button><span id="reset-confirm" hidden> Are you sure? <button type="button" class="btn danger small" id="reset-yes">Yes, reset</button></span></section>`;
+}
 function viewProgress(msg) {
+  if (REVIEW && typeof EXAM !== "undefined") return viewProgressReview(msg);
   setTab("progress");
   const sts = OPEN.map((s) => ({ s, ...stationStats(s) }));
   const m = sts.filter((x) => x.mastered).length;
@@ -561,6 +689,7 @@ function route() {
   const h = location.hash.slice(1);
   if (h === "review") { setTab("review"); return startQuiz(buildReview(), "review"); }
   if (h === "progress") return viewProgress();
+  if ((h === "fix" || h === "new") && REVIEW && typeof EXAM !== "undefined") { setTab("progress"); const qs = h === "fix" ? buildFix() : buildNew(); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, h); } return viewProgress(); }
   if (h === "final") { quiz = null; return viewFinal(); }
   if (h.startsWith("fw-") || h.startsWith("fo-")) { setTab("final"); const z = h.slice(3); const qs = h[1] === "w" ? buildFinalWords(z) : buildFinalOrder(z); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, "final"); } return viewFinal(); }
   if (h.startsWith("s-")) return viewStation(h.slice(2));

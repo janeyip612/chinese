@@ -14,6 +14,27 @@ const FOCUS = {
   stations: ["d5", "d4", "y8"],
 };
 
+// ───────── teacher settings (not shown to students) ─────────
+// MODE "review": before exams. An item is learned when the FIRST try of the day is right
+//   (a pinyin hint is fine: the exam paper has pinyin; a retry is not).
+// MODE "learn": during the term. An item is learned when it is right on two different days.
+const MODE = "review";
+// Final exam. Units as in the Semester Exam Planner; weights: Weeks 1–8 count 35%, Weeks 10–15 count 65% (Jane, 2026-11-16).
+// Last year's stations (week 0) and Week 16 are not in the exam.
+const EXAM = {
+  name: "Final exam", date: "2026-12-07",
+  weights: [
+    { from: 1, to: 8, weight: 35 },
+    { from: 10, to: 15, weight: 65 },
+  ],
+  units: [
+    { label: "Unit 1 · Reconnect & people", zh: "回归与人物", stations: ["u1", "u2", "u3"] },
+    { label: "Unit 2 · School life & feelings", zh: "校园生活与情绪", stations: ["c1", "c2"] },
+    { label: "Unit 3 · Community, shopping & opinions", zh: "社区、购物与观点", stations: ["c3", "d1", "d2", "d3", "d4", "d5"] },
+  ],
+};
+// HSK 1 route: back next term, with an HSK 1 basics station (Jane, 2026-11-20).
+
 const ZONES = [
   { id: "y", name: "Last year", zh: "去年的基础", color: "--line-y" },
   { id: "u1", name: "Unit 1 · People", zh: "人物", color: "--line-u1" },
