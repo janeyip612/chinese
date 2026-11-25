@@ -5,13 +5,13 @@
 // A slot with link:i always takes the same option index as slot i (i counts slots only).
 // Error items: "汉字|pinyin" strings.
 
-const CURRENT_WEEK = 15;
+const CURRENT_WEEK = 16;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
 const FOCUS = {
-  week: 15,
-  why: "Food and drink through your day: time → (place) → 吃 / 喝 + food. Hungry or thirsty? 我饿了，我想吃……",
-  stations: ["s15", "s14", "s13"],
+  week: 16,
+  why: "Order what you want: 我要 + 一碗 / 一杯 / 一个 + food. 还要 adds one more; 你呢？ asks your friend back.",
+  stations: ["s16", "s15", "s14"],
 };
 
 // ───────── teacher settings (not shown to students) ─────────
@@ -19,19 +19,19 @@ const FOCUS = {
 //   (a pinyin hint is fine: the exam paper has pinyin; a retry is not).
 // MODE "learn": during the term. An item is learned when it is right on two different days.
 const MODE = "review";
-// Final exam. Units as in the Semester Exam Planner; weights: Weeks 1–8 count 35%, Weeks 10–15 count 65% (Jane, 2026-11-16).
-// Last year's stations (week 0) and Week 16 are not in the exam.
+// Final exam. Units as in the Semester Exam Planner; weights: Weeks 1–8 count 35%, Weeks 10–16 count 65% (Jane, 2026-11-16).
+// Week 16 is in the Mandarin I exam (Jane, 2026-11-23). Students' own "My Chinese Menu" words are not tested.
 const EXAM = {
   name: "Final exam", date: "2026-12-07",
   weights: [
     { from: 1, to: 8, weight: 35 },
-    { from: 10, to: 15, weight: 65 },
+    { from: 10, to: 16, weight: 65 },
   ],
   units: [
     { label: "Unit 0 · Hello, Chinese!", zh: "你好，中文！", stations: ["s1", "s2"] },
     { label: "Unit 1 · Self, family & numbers", zh: "我、家人和数字", stations: ["s3", "s4", "s7", "s8", "s9", "s11"] },
     { label: "Unit 2 · Classroom & school life", zh: "教室与校园生活", stations: ["s5", "s6", "s10"] },
-    { label: "Unit 3 · My day: routine & food", zh: "我的一天：作息与饮食", stations: ["s12", "s13", "s14", "s15"] },
+    { label: "Unit 3 · My day: routine & food", zh: "我的一天：作息与饮食", stations: ["s12", "s13", "s14", "s15", "s16"] },
   ],
 };
 // HSK 1 route: back next term (Jane, 2026-11-20).
@@ -399,5 +399,42 @@ const STATIONS = [
     ],
     tip: "喜欢 = always (我喜欢喝茶). 想 = right now (我渴了，我想喝水). 饿 / 渴 + 了 gives the reason.",
   },
-  { id: "s16", zone: "b4", week: 16, title: "我要……", en: "Ordering food & drink", when: "Week 16", locked: true, words: [], frames: [] },
+  {
+    id: "s16", zone: "b4", week: 16, title: "我要……", en: "Ordering food & drink", when: "Week 16",
+    words: [
+      "要|yào|to want; would like (to order)", "碗|wǎn|bowl (measure word: 一碗米饭)", "杯|bēi|cup; glass (measure word: 一杯水)",
+      "还|hái|also; in addition (我还要……)", "呢|ne|and …? (你呢？ = and you?)", "好吃|hǎochī|tasty; delicious",
+      "太……了|tài……le|so …; too … (太好吃了！)",
+    ],
+    review: ["个", "想", "喝", "米饭", "面条", "水", "牛奶", "茶", "苹果"],
+    frames: [
+      { q: "你要什么？|Nǐ yào shénme?|What would you like?",
+        t: ["我要|wǒ yào", { s: ["一碗|yì wǎn", "一杯|yì bēi", "一个|yí gè"] }, { s: ["米饭|mǐfàn", "牛奶|niúnǎi", "苹果|píngguǒ"], link: 0 }, "。|."],
+        ex: "我要一碗米饭。|Wǒ yào yì wǎn mǐfàn.|I'd like a bowl of rice." },
+      { q: "你还要什么？|Nǐ hái yào shénme?|What else would you like?",
+        t: ["我要|wǒ yào", { s: ["一碗面条|yì wǎn miàntiáo", "一碗米饭|yì wǎn mǐfàn"] }, "，|,", "还要|hái yào", { s: ["一杯茶|yì bēi chá", "一杯水|yì bēi shuǐ", "一杯牛奶|yì bēi niúnǎi"] }, "。|."],
+        ex: "我要一碗面条，还要一杯茶。|Wǒ yào yì wǎn miàntiáo, hái yào yì bēi chá.|I'd like a bowl of noodles, and also a cup of tea." },
+      { q: "我要米饭，你呢？|Wǒ yào mǐfàn, nǐ ne?|I'd like rice. And you?",
+        t: ["我要|wǒ yào", { s: ["一碗面条|yì wǎn miàntiáo", "一个苹果|yí gè píngguǒ", "一杯牛奶|yì bēi niúnǎi"] }, "。|."],
+        ex: "我要一碗面条。|Wǒ yào yì wǎn miàntiáo.|I'd like a bowl of noodles." },
+      { q: "好吃吗？|Hǎochī ma?|Is it tasty?",
+        t: [{ s: ["面条|miàntiáo", "米饭|mǐfàn", "苹果|píngguǒ"] }, { s: ["太好吃了|tài hǎochī le", "很好吃|hěn hǎochī", "不好吃|bù hǎochī"] }, "！|!"],
+        ex: "面条太好吃了！|Miàntiáo tài hǎochī le!|The noodles are so tasty!" },
+    ],
+    fill: [
+      { q: "我要一___米饭。", o: ["碗", "杯", "个", "岁"], a: 0, en: "I'd like a bowl of rice." },
+      { q: "我要一___水。", o: ["杯", "碗", "个", "点"], a: 0, en: "I'd like a glass of water." },
+      { q: "我要一___苹果。", o: ["个", "杯", "碗", "号"], a: 0, en: "I'd like an apple." },
+      { q: "我要一碗面条，___要一杯茶。", o: ["还", "很", "在", "呢"], a: 0, en: "I'd like a bowl of noodles, and also a cup of tea." },
+      { q: "我要米饭，你___？", o: ["呢", "吗", "什么", "几"], a: 0, en: "I'd like rice. And you?" },
+      { q: "面条太好吃___！", o: ["了", "呢", "吗", "的"], a: 0, en: "The noodles are so tasty!" },
+    ],
+    errors: [
+      { ok: "我要一杯水。|Wǒ yào yì bēi shuǐ.", bad: ["我要一个水。|Wǒ yào yí gè shuǐ.", "我要一碗水。|Wǒ yào yì wǎn shuǐ."], tip: "Drinks come in a cup or glass: 一杯水 · 一杯茶 · 一杯牛奶." },
+      { ok: "我要一碗米饭，还要一杯茶。|Wǒ yào yì wǎn mǐfàn, hái yào yì bēi chá.", bad: ["我要一碗米饭，要还一杯茶。|Wǒ yào yì wǎn mǐfàn, yào hái yì bēi chá."], tip: "还 comes before 要: 还要 = also want." },
+      { ok: "面条太好吃了！|Miàntiáo tài hǎochī le!", bad: ["面条太好吃！|Miàntiáo tài hǎochī!", "面条很好吃了！|Miàntiáo hěn hǎochī le!"], tip: "太 + adjective + 了 go together: 太好吃了！" },
+      { ok: "我要面条，你呢？|Wǒ yào miàntiáo, nǐ ne?", bad: ["我要面条，你呢吗？|Wǒ yào miàntiáo, nǐ ne ma?"], tip: "呢 already asks the question: no 吗." },
+    ],
+    tip: "碗 for rice and noodles, 杯 for drinks, 个 for things you hold (苹果). 我要 + 一 + 碗 / 杯 / 个 + food. Your own menu words (饺子, 奶茶 …) are for speaking: they are not in the exam.",
+  },
 ];

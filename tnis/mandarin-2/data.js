@@ -4,14 +4,14 @@
 // Word format: "汉字|pinyin|English". Frame tokens: "汉字|pinyin" fixed, or {s:[...], link:i} slot.
 // A slot with link:i always takes the same option index as slot i.
 
-const CURRENT_WEEK = 15;
+const CURRENT_WEEK = 16;
 
 // Teacher-set focus for this week's Daily review (update every Friday).
-// Week 15: compare and choose (new station d5), plus last week's shopping and last year's clothes.
+// Week 16: at the bubble-tea shop (new station d6), plus compare & choose and shopping.
 const FOCUS = {
-  week: 15,
-  why: "Find the best deal: ask 还是, compare with 比 · 更 · 最 · 一样, check 新 or 旧, then choose.",
-  stations: ["d5", "d4", "y8"],
+  week: 16,
+  why: "Order exactly what you want: 我要一杯冰奶茶，大杯，少糖。 Then ask 一共多少钱？ and choose with 还是 · 比 · 因为.",
+  stations: ["d6", "d5", "d4"],
 };
 
 // ───────── teacher settings (not shown to students) ─────────
@@ -19,18 +19,18 @@ const FOCUS = {
 //   (a pinyin hint is fine: the exam paper has pinyin; a retry is not).
 // MODE "learn": during the term. An item is learned when it is right on two different days.
 const MODE = "review";
-// Final exam. Units as in the Semester Exam Planner; weights: Weeks 1–8 count 35%, Weeks 10–15 count 65% (Jane, 2026-11-16).
-// Last year's stations (week 0) and Week 16 are not in the exam.
+// Final exam. Units as in the Semester Exam Planner; weights: Weeks 1–8 count 35%, Weeks 10–16 count 65% (Jane, 2026-11-16; Week 16 added 2026-11-25).
+// Last year's stations (week 0) are not in the exam.
 const EXAM = {
   name: "Final exam", date: "2026-12-07",
   weights: [
     { from: 1, to: 8, weight: 35 },
-    { from: 10, to: 15, weight: 65 },
+    { from: 10, to: 16, weight: 65 },
   ],
   units: [
     { label: "Unit 1 · Reconnect & people", zh: "回归与人物", stations: ["u1", "u2", "u3"] },
     { label: "Unit 2 · School life & feelings", zh: "校园生活与情绪", stations: ["c1", "c2"] },
-    { label: "Unit 3 · Community, shopping & opinions", zh: "社区、购物与观点", stations: ["c3", "d1", "d2", "d3", "d4", "d5"] },
+    { label: "Unit 3 · Community, shopping & opinions", zh: "社区、购物与观点", stations: ["c3", "d1", "d2", "d3", "d4", "d5", "d6"] },
   ],
 };
 // HSK 1 route: back next term, with an HSK 1 basics station (Jane, 2026-11-20).
@@ -515,5 +515,43 @@ const STATIONS = [
       { ok: "这两件衬衫一样贵。|Zhè liǎng jiàn chènshān yíyàng guì.", bad: ["这两件衬衫贵一样。|Zhè liǎng jiàn chènshān guì yíyàng."], tip: "一样 comes before the adjective: 一样贵, 一样大." },
     ],
     tip: "Shop like a pro: 比 compares two things, 更 = even more, 最 = the most of all, 一样 = no difference. Always ask: 新的还是旧的？",
+  },
+  {
+    // Week 16 counts for the final exam (Jane, 2026-11-25). Chunks 大杯 / 中杯 · 少糖 · 带走 are taught, not counted as words.
+    id: "d6", zone: "c3", week: 16, title: "在奶茶店", en: "At the bubble-tea shop", when: "Week 16",
+    words: [
+      "奶茶|nǎichá|milk tea", "杯|bēi|cup (measure word: 一杯奶茶)", "冰|bīng|iced; ice",
+      "热|rè|hot", "甜|tián|sweet", "糖|táng|sugar",
+    ],
+    review: ["还是", "比", "一共", "块", "因为", "太……了", "喝", "果汁"],
+    frames: [
+      { q: "你要什么？|Nǐ yào shénme?|What would you like?",
+        t: ["我要一杯|wǒ yào yì bēi", { s: ["冰|bīng", "热|rè"] }, "奶茶|nǎichá", "，|,", { s: ["大杯|dà bēi", "中杯|zhōng bēi"] }, "，|,", { s: ["少糖|shǎo táng", "不要糖|bú yào táng"] }, "。|."],
+        ex: "我要一杯冰奶茶，大杯，少糖。|Wǒ yào yì bēi bīng nǎichá, dà bēi, shǎo táng.|I'd like an iced milk tea, large, less sugar." },
+      { q: "你要冰的还是热的？|Nǐ yào bīng de háishi rè de?|Iced or hot?",
+        t: ["我要|wǒ yào", { s: ["冰的|bīng de", "热的|rè de"] }, "，|,", "带走|dàizǒu", "。|."],
+        ex: "我要热的，带走。|Wǒ yào rè de, dàizǒu.|A hot one, to go." },
+      { q: "一共多少钱？|Yígòng duōshao qián?|How much altogether?",
+        t: ["一共|yígòng", { s: ["三十五块|sānshíwǔ kuài", "二十五块|èrshíwǔ kuài", "四十块|sìshí kuài"] }, "。|."],
+        ex: "一共三十五块。|Yígòng sānshíwǔ kuài.|35 kuai altogether." },
+      { q: "你要哪个？|Nǐ yào nǎge?|Which one would you like?",
+        t: ["我要这个|wǒ yào zhège", "，|,", "因为|yīnwèi", "它比那个|tā bǐ nàge", { s: ["便宜|piányi", "甜|tián", "大|dà"] }, "。|."],
+        ex: "我要这个，因为它比那个便宜。|Wǒ yào zhège, yīnwèi tā bǐ nàge piányi.|I'll take this one, because it's cheaper than that one." },
+    ],
+    fill: [
+      { q: "我要一___冰奶茶。", o: ["杯", "件", "双", "条"], a: 0, en: "I'd like an iced milk tea." },
+      { q: "你要冰的___热的？", o: ["还是", "和", "也", "比"], a: 0, en: "Iced or hot?" },
+      { q: "今天很热，我要___的。", o: ["冰", "热", "甜", "糖"], a: 0, en: "It's hot today: I want an iced one." },
+      { q: "我不喜欢太甜的，我要少___。", o: ["糖", "冰", "杯", "块"], a: 0, en: "I don't like it too sweet: less sugar." },
+      { q: "中杯二十五块，大杯三十块。中杯___大杯便宜。", o: ["比", "更", "最", "一样"], a: 0, en: "The medium is cheaper than the large." },
+      { q: "奶茶二十五块，果汁二十块，___四十五块。", o: ["一共", "太", "最", "多少"], a: 0, en: "Milk tea 25, juice 20: 45 kuai altogether." },
+    ],
+    errors: [
+      { ok: "我要一杯冰奶茶。|Wǒ yào yì bēi bīng nǎichá.", bad: ["我要一个冰奶茶。|Wǒ yào yí gè bīng nǎichá.", "我要一件冰奶茶。|Wǒ yào yí jiàn bīng nǎichá."], tip: "Drinks come in cups: 一杯." },
+      { ok: "我要一杯冰奶茶，大杯，少糖。|Wǒ yào yì bēi bīng nǎichá, dà bēi, shǎo táng.", bad: ["我要一杯奶茶冰，大杯，少糖。|Wǒ yào yì bēi nǎichá bīng, dà bēi, shǎo táng."], tip: "冰 / 热 goes before the drink: 冰奶茶, 热奶茶." },
+      { ok: "你要冰的还是热的？|Nǐ yào bīng de háishi rè de?", bad: ["你要冰的还是热的吗？|Nǐ yào bīng de háishi rè de ma?"], tip: "还是 already makes a question: no 吗." },
+      { ok: "我要这个，因为它比那个便宜。|Wǒ yào zhège, yīnwèi tā bǐ nàge piányi.", bad: ["我要这个，因为它比那个很便宜。|Wǒ yào zhège, yīnwèi tā bǐ nàge hěn piányi."], tip: "No 很 after 比." },
+    ],
+    tip: "The order line: 我要一杯 → 冰 / 热 + drink → 大杯 / 中杯 → 少糖 → 带走. 冰 has 冫 (ice); 汁 and 水 have 氵 (water).",
   },
 ];

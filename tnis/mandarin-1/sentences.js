@@ -1,7 +1,16 @@
 // Mandarin I learning map — sentence-building bank, by station.
 // Tiles: [hanzi, pinyin]. e = end punctuation. alt = other correct orders (hanzi only).
 // Only taught words (checked by build_sentences.js). Edit the bank file, then rebuild.
-const SENTENCES = {"s2":[
+const SENTENCES = {"s1":[
+ {"t":[["你好","nǐ hǎo"],["，",""],["我","wǒ"],["叫","jiào"],["小美","Xiǎoměi"]],
+"e":"。","en":"Hello, my name is Xiaomei."},
+ {"t":[["我","wǒ"],["很","hěn"],["好","hǎo"],["，",""],["谢谢","xièxie"]],
+"e":"！","en":"I'm very well, thanks!","alt":[["谢谢","，","我","很","好"]]},
+ {"t":[["谢谢","xièxie"],["你","nǐ"],["，",""],["再见","zàijiàn"]],
+"e":"！","en":"Thank you. Goodbye!"},
+ {"t":[["你好","nǐ hǎo"],["，",""],["你","nǐ"],["是","shì"],["老师","lǎoshī"],["吗","ma"]],
+"e":"？","en":"Hello, are you a teacher?"}],
+"s2":[
  {"t":[["二","èr"],["十","shí"],["五","wǔ"]],
 "e":"。","en":"twenty-five"},
  {"t":[["五","wǔ"],["十","shí"],["二","èr"]],
@@ -196,4 +205,27 @@ const SENTENCES = {"s2":[
  {"t":[["你","nǐ"],["喜欢","xǐhuan"],["吃","chī"],["什么","shénme"]],
 "e":"？","en":"What do you like to eat?"},
  {"t":[["我","wǒ"],["七点","qī diǎn"],["吃","chī"],["早饭","zǎofàn"],["，",""],["然后","ránhòu"],["喝","hē"],["牛奶","niúnǎi"]],
-"e":"。","en":"I eat breakfast at seven, then drink milk."}]};
+"e":"。","en":"I eat breakfast at seven, then drink milk."}],
+"s16":[
+ {"t":[["我","wǒ"],["要","yào"],["一碗","yì wǎn"],["米饭","mǐfàn"]],
+"e":"。","en":"I'd like a bowl of rice."},
+ {"t":[["我","wǒ"],["要","yào"],["一杯","yì bēi"],["水","shuǐ"]],
+"e":"。","en":"I'd like a glass of water."},
+ {"t":[["我","wǒ"],["要","yào"],["一个","yí gè"],["苹果","píngguǒ"]],
+"e":"。","en":"I'd like an apple."},
+ {"t":[["你","nǐ"],["要","yào"],["什么","shénme"]],
+"e":"？","en":"What would you like?"},
+ {"t":[["我","wǒ"],["要","yào"],["一碗","yì wǎn"],["面条","miàntiáo"],["，",""],["还","hái"],["要","yào"],["一杯","yì bēi"],["茶","chá"]],
+"e":"。","en":"I'd like a bowl of noodles, and also a cup of tea.","alt":[["我","要","一杯","茶","，","还","要","一碗","面条"]]},
+ {"t":[["我","wǒ"],["还","hái"],["要","yào"],["一杯","yì bēi"],["牛奶","niúnǎi"]],
+"e":"。","en":"I'd also like a glass of milk."},
+ {"t":[["我","wǒ"],["要","yào"],["米饭","mǐfàn"],["，",""],["你","nǐ"],["呢","ne"]],
+"e":"？","en":"I'd like rice. And you?"},
+ {"t":[["面条","miàntiáo"],["太","tài"],["好吃","hǎochī"],["了","le"]],
+"e":"！","en":"The noodles are so tasty!"},
+ {"t":[["我","wǒ"],["饿了","è le"],["，",""],["我","wǒ"],["要","yào"],["一碗","yì wǎn"],["面条","miàntiáo"]],
+"e":"。","en":"I'm hungry. I'd like a bowl of noodles."},
+ {"t":[["我","wǒ"],["渴了","kě le"],["，",""],["我","wǒ"],["要","yào"],["一杯","yì bēi"],["水","shuǐ"]],
+"e":"。","en":"I'm thirsty. I'd like a glass of water."},
+ {"t":[["我","wǒ"],["中午","zhōngwǔ"],["要","yào"],["一碗","yì wǎn"],["米饭","mǐfàn"]],
+"e":"。","en":"At noon I'd like a bowl of rice.","alt":[["中午","我","要","一碗","米饭"]]}]};

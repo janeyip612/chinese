@@ -150,7 +150,7 @@ function mapLines() {
   });
   const locked = STATIONS.filter((st) => !used.has(st.id) && st.locked);
   if (locked.length && lines.length) { lines[lines.length - 1].sts.push(...locked); locked.forEach((st) => used.add(st.id)); }
-  base.forEach((z) => { const rest = z.sts.filter((st) => !used.has(st.id)); if (rest.length) lines.push({ ...z, name: z.name + " · basics", sts: rest }); });
+  base.forEach((z) => { const rest = z.sts.filter((st) => !used.has(st.id)); if (rest.length) lines.push(rest.every((st) => st.week === 0) ? { ...z, name: z.name + " · basics", sts: rest } : { ...z, name: "Week " + [...new Set(rest.map((st) => st.week))].join(", ") + " · not in the exam", zh: "考试以外", sts: rest }); });
   return lines;
 }
 const lineOf = (st) => mapLines().find((z) => z.sts.includes(st)) || ZONES.find((z) => z.id === st.zone);
@@ -547,7 +547,7 @@ function viewProgressReview(msg) {
     <p class="hint">${esc(EXAM.name)}: from ${esc(dateTxt)}${d > 0 ? ` · <b>${d}</b> days to go` : ""}</p>
     <div class="ready"><b>${es.ready}%</b><span>ready for the exam</span></div>
     <ul class="plist exam">${es.units.map((u) => `<li><span class="pname"><span class="zh">${esc(u.label.split(" · ")[0])}</span><span class="en">${esc(u.label.split(" · ").slice(1).join(" · "))}</span></span>${meter2(u.k, u.p, u.n)}<span class="num">${u.k}/${u.n}<small>learned</small></span><span>${u.n && u.k === u.n ? "✓" : ""}</span></li>`).join("")}</ul>
-    <p class="hint"><b>Learned</b> = right on your first try of the day. A pinyin hint is fine: the exam paper has pinyin too. Weeks 1–8 count for 35% of the exam, Weeks 10–15 for 65%.</p>
+    <p class="hint"><b>Learned</b> = right on your first try of the day. A pinyin hint is fine: the exam paper has pinyin too. ${EXAM.weights.map((w) => `Weeks ${w.from}–${w.to} count for ${w.weight}%`).join(", ")} of the exam.</p>
   </section>
   <section class="block"><h3>What to review next</h3>
     <h4 class="step">1 · By station</h4>
@@ -638,9 +638,16 @@ document.addEventListener("click", async (ev) => {
 store.flags = store.flags || {};
 // A word needs work if the student marked it, the last answer was wrong, or it was ever wrong and isn't learned yet.
 const needsWork = (h) => { const it = item("w:" + h); return !!store.flags[h] || (it.seen > 0 && it.b === 0) || ((it.w || 0) > 0 && it.b < 2); };
-const zoneStations = (z) => OPEN.filter((s) => z === "all" || s.zone === z);
+// Groups: in exam review, one per exam unit (as on the map), plus stations outside the exam; otherwise map zones.
+const FIN = (REVIEW && typeof EXAM !== "undefined" && EXAM.units) ? (() => {
+  const g = EXAM.units.map((u, i) => ({ id: "u" + i, name: u.label, zh: u.zh || "", sts: u.stations.map((id) => ST[id]).filter((s) => s && !s.locked) }));
+  const inExam = new Set(g.flatMap((x) => x.sts.map((s) => s.id)));
+  const rest = OPEN.filter((s) => !inExam.has(s.id));
+  return [{ id: "all", name: "Whole exam", zh: "全部", sts: g.flatMap((x) => x.sts) }, ...g, ...(rest.length ? [{ id: "x", name: "Not in the exam", zh: "考试以外", sts: rest }] : [])];
+})() : [{ id: "all", name: "All units", zh: "全部", sts: OPEN }, ...ZONES.map((z) => ({ id: z.id, name: z.name, zh: z.zh, sts: OPEN.filter((s) => s.zone === z.id) }))];
+const zoneStations = (z) => (FIN.find((g) => g.id === z) || FIN[0]).sts;
 const zoneWords = (z) => [...new Set(zoneStations(z).flatMap(stWords))].filter((h) => WORDS[h]);
-const fin = { z: "all", only: false, oz: "all" };
+const fin = { z: "all", only: false, oz: "all", gz: "all" };
 function wallCard(h) {
   const w = WORDS[h]; const fl = !!store.flags[h];
   const cls = needsWork(h) ? " need" : known(h) ? " known" : "";
@@ -649,17 +656,25 @@ function wallCard(h) {
 }
 function viewFinal() {
   setTab("final");
-  const zs = [["all", "All units", "全部"], ...ZONES.map((z) => [z.id, z.name, z.zh])];
+  const zs = FIN.map((g) => [g.id, g.name, g.zh]);
   const chips = (cur, attr) => zs.map(([id, n, zh]) => `<button type="button" class="chip zchip" data-${attr}="${id}" aria-pressed="${cur === id}">${esc(zh)} <span class="en">${esc(n)}</span></button>`).join("");
   const words = zoneWords(fin.z); const need = words.filter(needsWork); const shown = fin.only ? need : words;
   const os = sentItems(zoneStations(fin.oz)); const ok = os.filter(knownId).length;
-  main.innerHTML = `<section class="block"><h2>总复习 · Final review</h2><p class="hint">The final exam covers everything from Week 1. Use the word wall to find the words you still need, then practise sentences unit by unit or all mixed.</p></section>
+  const gs = grammarItems(zoneStations(fin.gz)).map(idOf); const gk = gs.filter(knownId).length;
+  const scope = REVIEW && typeof EXAM !== "undefined" ? `The ${esc(EXAM.name.toLowerCase())} covers Weeks ${EXAM.weights[0].from}–${EXAM.weights[EXAM.weights.length - 1].to}.` : "The final exam covers everything from Week 1.";
+  main.innerHTML = `<section class="block"><h2>总复习 · Final review</h2><p class="hint">${scope} Three steps, unit by unit or all mixed: 1 · find the words you still need on the word wall · 2 · check the grammar · 3 · build sentences.</p></section>
   <section class="block"><h3>生词墙 · Word wall</h3>
     <p class="hint"><b class="k-need">Red</b> = words to practise: you got them wrong, or you marked them ★ Not sure. <b class="k-ok">Green</b> = learned. Tap a word for its pinyin and meaning. Tap ☆ to mark a word you haven't remembered yet; tap it again when you know it.</p>
     <div class="zrow">${chips(fin.z, "wz")}</div>
     <div class="wall-bar"><label class="only"><input type="checkbox" id="only"${fin.only ? " checked" : ""}> Only words to practise (${need.length} of ${words.length})</label>
       ${need.length ? `<a class="btn primary small" href="#fw-${fin.z}">Practise these words</a>` : ""}</div>
     <div class="words wall">${shown.length ? shown.map(wallCard).join("") : '<p class="hint">Nothing to practise here. Well done!</p>'}</div>
+  </section>
+  <section class="block"><h3>句型 · Grammar check</h3>
+    <p class="hint">Fill the gap, or pick the sentence that is right. Choose one unit, or mix all units.</p>
+    <div class="zrow">${chips(fin.gz, "gz")}</div>
+    <p class="hint">${gs.length} questions · ${gk} learned</p>
+    ${gs.length ? `<a class="btn primary" href="#fg-${fin.gz}">Start: ${Math.min(10, gs.length)} questions</a>` : '<p class="hint">No grammar questions in this unit yet.</p>'}
   </section>
   <section class="block"><h3>排词成句 · Sentence building</h3>
     <p class="hint">Put the words in the right order. Choose one unit, or mix all units.</p>
@@ -674,10 +689,12 @@ document.addEventListener("click", (ev) => {
   if (f) { const h = f.dataset.flag; if (store.flags[h]) delete store.flags[h]; else store.flags[h] = true; save(); return viewFinalKeep(); }
   const wz = ev.target.closest("[data-wz]"); if (wz) { fin.z = wz.dataset.wz; return viewFinalKeep(); }
   const oz = ev.target.closest("[data-oz]"); if (oz) { fin.oz = oz.dataset.oz; return viewFinalKeep(); }
+  const gz = ev.target.closest("[data-gz]"); if (gz) { fin.gz = gz.dataset.gz; return viewFinalKeep(); }
 });
 document.addEventListener("change", (ev) => { if (ev.target.id === "only") { fin.only = ev.target.checked; viewFinalKeep(); } });
 const buildFinalWords = (z) => priority(zoneWords(z).filter(needsWork).map((h) => "w:" + h)).slice(0, 10).map((id) => wordQ(id.slice(2)));
 const buildFinalOrder = (z) => priority(sentItems(zoneStations(z))).slice(0, 10).map(orderQ);
+const buildFinalGrammar = (z) => priority(grammarItems(zoneStations(z)).map(idOf)).slice(0, 10).map(qOf);
 
 // ───────── pinyin toggle & routing ─────────
 const pyBtn = $("#pinyin");
@@ -691,7 +708,7 @@ function route() {
   if (h === "progress") return viewProgress();
   if ((h === "fix" || h === "new") && REVIEW && typeof EXAM !== "undefined") { setTab("progress"); const qs = h === "fix" ? buildFix() : buildNew(); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, h); } return viewProgress(); }
   if (h === "final") { quiz = null; return viewFinal(); }
-  if (h.startsWith("fw-") || h.startsWith("fo-")) { setTab("final"); const z = h.slice(3); const qs = h[1] === "w" ? buildFinalWords(z) : buildFinalOrder(z); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, "final"); } return viewFinal(); }
+  if (h.startsWith("fw-") || h.startsWith("fo-") || h.startsWith("fg-")) { setTab("final"); const z = h.slice(3); const qs = h[1] === "w" ? buildFinalWords(z) : h[1] === "g" ? buildFinalGrammar(z) : buildFinalOrder(z); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, "final"); } return viewFinal(); }
   if (h.startsWith("s-")) return viewStation(h.slice(2));
   if (h.startsWith("p-") && ST[h.slice(2)]) { setTab("map"); return startQuiz(buildPractice(h.slice(2)), "station", h.slice(2)); }
   quiz = null; viewMap();
