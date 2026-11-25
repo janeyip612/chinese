@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TNIS Pathway Crosswalk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
+<style>
+/* VOICE: a proposal page for school leaders and investors, calm and exact, same family as "TNIS 中文路径图" v0.2
+   IDEA: a school's course-catalogue crosswalk sheet: grades down the side, exams across, two pacing scenarios
+   PICTURE: one growth chart of exam-list vocabulary by grade, two scenario lines climbing through HSK level bands
+   COLOUR and TYPE: v0.2 palette (deep teal ground accents, blue and amber scenario lines), Noto Serif SC titles, Noto Sans SC text
+   LAYOUT: header + chart, crosswalk table with scenario switch, exits, transfer students, pace benchmark, sources */
+:root{color-scheme:light;
+  --bg:#eef2f1;--surface:#ffffff;--ink:#15242a;--muted:#56676b;--line:#d2dcda;--soft:#e3ebe9;
+  --accent:#1f6f6b;--accent-ink:#ffffff;--accent-soft:#d5e9e6;
+  --lang:#4f6fb0;--lang-soft:#e1e8f6;--exam:#b0662a;--exam-soft:#f6e6d6;
+  --gold:#a8781a;--gold-soft:#f4e8cc;--now:#c2413b;--now-soft:#f7dedb;
+  --f-disp:"Noto Serif SC","Songti SC",serif;--f-ui:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --bg:#101a1c;--surface:#182427;--ink:#e3ecea;--muted:#9bb0ad;--line:#2c3c3e;--soft:#1e2d30;
+  --accent:#62c0b6;--accent-ink:#0c1a19;--accent-soft:#1c3a37;
+  --lang:#8eaaf0;--lang-soft:#1f2a44;--exam:#e39a5c;--exam-soft:#3a2a1a;
+  --gold:#e3b75a;--gold-soft:#3a3018;--now:#f08178;--now-soft:#3b2020}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --bg:#101a1c;--surface:#182427;--ink:#e3ecea;--muted:#9bb0ad;--line:#2c3c3e;--soft:#1e2d30;
+  --accent:#62c0b6;--accent-ink:#0c1a19;--accent-soft:#1c3a37;
+  --lang:#8eaaf0;--lang-soft:#1f2a44;--exam:#e39a5c;--exam-soft:#3a2a1a;
+  --gold:#e3b75a;--gold-soft:#3a3018;--now:#f08178;--now-soft:#3b2020}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-ui);overflow-x:clip}
+body.l-zh .e,body.l-en .z{display:none!important}
+.wrap{max-width:1200px;margin:0 auto;padding:24px max(16px,4vw) 64px;display:grid;gap:40px;grid-template-columns:minmax(0,1fr)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+header{display:grid;gap:14px}
+.topbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.eyebrow{font-size:13px;color:var(--muted)}
+.seg{display:flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px;gap:2px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font-size:14px;color:var(--muted);min-height:40px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+h1{font-family:var(--f-disp);font-size:clamp(30px,5vw,48px);line-height:1.12;margin:0;text-wrap:balance}
+.lede{font-size:clamp(16px,2vw,18px);margin:0;max-width:62em}
+.facts{display:flex;flex-wrap:wrap;gap:6px 24px}
+.fact{font-size:14px;color:var(--muted)}.fact b{color:var(--ink);font-size:16px;margin-left:4px;font-variant-numeric:tabular-nums}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px}
+nav.toc a{font-size:14.5px;font-weight:500;color:var(--accent-ink);background:var(--accent);text-decoration:none;border-radius:10px;padding:9px 14px}
+section{display:grid;gap:16px;scroll-margin-top:16px}
+h2{font-family:var(--f-disp);font-size:clamp(22px,3vw,30px);margin:0;text-wrap:balance}
+h2 small{display:block;font-family:var(--f-ui);font-size:13px;font-weight:400;color:var(--muted);margin-bottom:2px}
+h3{margin:0;font-size:17px}
+.intro{color:var(--muted);margin:0;max-width:66em}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.note{font-size:13px;color:var(--muted);margin:0}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:14px}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend i{width:24px;height:4px;border-radius:2px;display:inline-block}
+.fig{position:relative;height:clamp(300px,42vw,430px)}
+.fig svg{position:absolute;inset:0;width:100%;height:100%}
+svg text{font-family:var(--f-ui);fill:var(--muted);font-size:12px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+th{font-size:12.5px;color:var(--muted);font-weight:500}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.g{font-weight:700;white-space:nowrap}
+td.lv{white-space:nowrap}
+td .sp{display:block;font-size:12px;color:var(--muted)}
+tr.seg-start td{border-top:2px solid var(--line)}
+tr.hl td{background:var(--accent-soft)}
+table.x{min-width:900px}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:13px;font-weight:700;white-space:nowrap}
+.pill.l{background:var(--lang-soft);color:var(--lang)}.pill.x{background:var(--exam-soft);color:var(--exam)}.pill.n{background:var(--soft);color:var(--muted);font-weight:500}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.mode{border-radius:12px;padding:14px 16px;display:grid;gap:4px;border:1px solid var(--line);background:var(--surface)}
+.mode h3{font-family:var(--f-disp)}
+.mode.l{border-top:4px solid var(--lang)}.mode.x{border-top:4px solid var(--exam)}
+.mode p{margin:0;font-size:14.5px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:6px;align-content:start}
+.card p{margin:0;font-size:14.5px}
+.card .k{font-size:12.5px;color:var(--accent);font-weight:700}
+.big{font-size:clamp(26px,3.4vw,34px);font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.callout{border-left:3px solid var(--gold);background:var(--surface);border-radius:0 10px 10px 0;padding:12px 14px;font-size:14.5px}
+.callout b{display:block;margin-bottom:2px}
+ul.tight{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14.5px}
+.sources{font-size:13px;color:var(--muted);line-height:1.7}.sources a{color:var(--accent)}
+@media(max-width:600px){table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:8em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7.5em;margin-inline-start:-8em;white-space:normal;color:var(--muted);font-size:12px}.stack td:empty{display:none}}
+th.grp{text-align:center;border-bottom:1px solid var(--line);color:var(--ink);font-weight:700}
+th .sp{display:block;font-size:11px;color:var(--muted);font-weight:400}
+td.na{background:var(--soft)}
+.big small{display:block;font-size:14px;font-weight:500;color:var(--muted);margin-top:4px}
+table.x{min-width:860px}
+</style>
+<script>function labelStack(all){for(const c of document.querySelectorAll(all?'.stack td':'.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;const h=c.closest('table').rows[0].cells[i];const sp=h&&h.querySelector(document.body.classList.contains('l-en')?'.e':'.z');c.dataset.l=h?(sp?sp.textContent:h.textContent).trim():''}}new MutationObserver(()=>labelStack(false)).observe(document,{childList:true,subtree:true})</script>
+</head><body class="l-en">
+<div class="wrap">
+<header>
+  <div class="eyebrow">TNIS Chinese (CSL) Proposal · Pathway &amp; Exam Crosswalk v2 · 25 Nov 2026</div>
+  <h1>From G3 to G12: the exam level each year reaches</h1>
+  <p class="lede">Projected from Mandarin I's real pace this year: ten years from G3 reach about HSK 3 and AP 3 when language ability leads, and HSK 4 and AP 5 when exam alignment leads. A third period a week in G6–8 adds 90 periods and lifts the language-first G12 result from AP 3 to AP 4.</p>
+  <div class="facts">
+    <span class="fact">Benchmark pace <b>1.8 words/period</b></span>
+    <span class="fact">Exam standard <b>HSK 3.0 · 2025 syllabus</b></span>
+    <span class="fact">G3–G12 periods <b>960 / 1,050</b></span>
+  </div>
+</header>
+
+<section aria-label="Growth chart">
+  <div class="panel" style="display:grid;gap:12px">
+    <div class="legend">
+      <span><i style="background:var(--lang)"></i>Language ability first</span>
+      <span><i style="background:var(--exam)"></i>Exam alignment first</span>
+      <span><i style="background:var(--muted);height:2px"></i>HSK 3.0 vocabulary thresholds</span>
+      <span><i style="background:linear-gradient(90deg,var(--ink) 50%,transparent 50%);background-size:8px 4px"></i>dashed = G6–8 at 3 periods/week</span>
+    </div>
+    <div class="fig"><svg id="chart" role="img" aria-label="Exam-list vocabulary by grade"></svg></div>
+    <div class="seg" role="group" aria-label="Timetable" id="schedSeg" style="justify-self:start">
+      <button data-t="2" aria-pressed="true">G6–8: 2 periods/week (current)</button>
+      <button data-t="3" aria-pressed="false">G6–8: 3 periods/week</button>
+    </div>
+    <p class="note">The vertical axis is cumulative vocabulary on the exam lists, for a student starting at G3. The chosen timetable is drawn bold, the other faint. G9 onward has 5 periods a week, so the lines steepen at G9.</p>
+  </div>
+</section>
+
+<section id="crosswalk">
+  <h2><small>Crosswalk</small>Grade, learning load and exam level</h2>
+  <div class="modes">
+    <div class="mode l"><h3>Language ability first</h3><p>Today's classroom pace: about 1.8 new words a period in high school, with handwriting, sentence patterns and speaking practised alongside. About 80% of words are on the exam lists.</p></div>
+    <div class="mode x"><h3>Exam alignment first</h3><p>A faster new-word pace (about 2.7 a period in high school, or 13–14 a week), with words chosen from the exam lists, so about 95% count towards the exams.</p></div>
+  </div>
+  <div class="seg" role="group" aria-label="Scenario" id="modeSeg" style="justify-self:start">
+    <button data-m="l" aria-pressed="true">Language ability first</button>
+    <button data-m="x" aria-pressed="false">Exam alignment first</button>
+  </div>
+  <div class="panel scroll"><table class="x" id="xTable"></table></div>
+  <p class="note">"Within reach" means 80% of the next level's vocabulary, reachable with exam preparation. Grammar points are estimated from each level's grammar load in China's national Chinese Proficiency Grading Standards (GF 0025—2021), matched to the vocabulary reached. YCT is the test for young learners; HSK 3.0 levels follow the 2025 syllabus used from 13 Dec 2026; TOCFL is Taiwan's test. ACTFL and AP are approximate matches by vocabulary: speaking and task performance decide in the end.</p>
+</section>
+
+<section id="third">
+  <h2><small>Timetable option</small>What a third period in G6–8 buys</h2>
+  <p class="intro" style="color:var(--muted);margin:0">Moving G6–8 from 2 to 3 periods a week adds 30 periods a year, 90 in all. Everything else stays the same.</p>
+  <div class="panel scroll"><table class="x" id="cmpTable" style="min-width:720px"></table></div>
+</section>
+
+<section id="pace">
+  <h2><small>Pace benchmark</small>Every number comes from one measured pace</h2>
+  <div class="cards" id="paceCards"></div>
+  <p class="note">Positions are estimates assuming 30 teaching weeks a year and regular attendance, to be recalibrated with pilot data. Sources: HSK Syllabus (CLEC, Nov 2025); TOCFL 8,000-word list (2018); College Board AP Chinese; Mandarin I learning map, Weeks 1–15 of 2026–27.</p>
+</section>
+</div>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const G=[3,4,5,6,7,8,9,10,11,12];
+const SEG=g=>g<=5?"Primary":g<=8?"Middle":g<=10?"High":"High · elective";
+const PER=g=>g<=5?2:g<=8?sched:5;
+const D={
+ 2:{
+ l:{w:[90,180,270,390,510,630,900,1170,1440,1710],e:[72,144,216,312,408,504,720,936,1152,1368],gr:[10,25,35,55,90,130,165,200,220,240],
+  act:["Novice Low","Novice Mid","Novice Mid","Novice High","Novice High","Intermediate Low","Intermediate Low","Intermediate Low","Intermediate Mid","Intermediate Mid"],
+  yct:[["—","YCT 1"],["YCT 1","YCT 2"],["YCT 2",""]],
+  hsk:[["HSK 1",""],["HSK 1","HSK 2"],["HSK 2",""],["HSK 2",""],["HSK 2","HSK 3"],["HSK 3",""],["HSK 3",""]],
+  toc:[["A1",""],["A1","A2"],["A2",""],["A2",""]],
+  ap:["AP 2","AP 2","AP 3","AP 3"]},
+ x:{w:[120,240,360,510,660,810,1215,1620,2025,2430],e:[114,228,342,485,627,770,1154,1539,1924,2309],gr:[20,35,65,125,150,175,220,250,280,300],
+  act:["Novice Mid","Novice Mid","Novice High","Novice High","Intermediate Low","Intermediate Low","Intermediate Mid","Intermediate Mid","Intermediate Mid","Intermediate High"],
+  yct:[["YCT 1",""],["YCT 2",""],["YCT 3",""]],
+  hsk:[["HSK 1","HSK 2"],["HSK 2",""],["HSK 2",""],["HSK 3",""],["HSK 3",""],["HSK 3","HSK 4"],["HSK 4",""]],
+  toc:[["A2",""],["A2",""],["A2",""],["A2","B1"]],
+  ap:["AP 3","AP 4","AP 4","AP 5"]}},
+ 3:{
+ l:{w:[90,180,270,450,630,810,1080,1350,1620,1890],e:[72,144,216,360,504,648,864,1080,1296,1512],gr:[10,25,35,70,130,155,190,215,230,250],
+  act:["Novice Low","Novice Mid","Novice Mid","Novice High","Intermediate Low","Intermediate Low","Intermediate Low","Intermediate Mid","Intermediate Mid","Intermediate Mid"],
+  yct:[["—","YCT 1"],["YCT 1","YCT 2"],["YCT 2",""]],
+  hsk:[["HSK 1",""],["HSK 2",""],["HSK 2",""],["HSK 2","HSK 3"],["HSK 3",""],["HSK 3",""],["HSK 3",""]],
+  toc:[["A1","A2"],["A2",""],["A2",""],["A2",""]],
+  ap:["AP 2","AP 3","AP 3","AP 4"]},
+ x:{w:[120,240,360,585,810,1035,1440,1845,2250,2655],e:[114,228,342,556,770,983,1368,1753,2138,2522],gr:[20,35,65,140,175,205,240,265,290,310],
+  act:["Novice Mid","Novice Mid","Novice High","Intermediate Low","Intermediate Low","Intermediate Low","Intermediate Mid","Intermediate Mid","Intermediate High","Intermediate High"],
+  yct:[["YCT 1",""],["YCT 2",""],["YCT 3",""]],
+  hsk:[["HSK 2",""],["HSK 2",""],["HSK 2","HSK 3"],["HSK 3",""],["HSK 3","HSK 4"],["HSK 4",""],["HSK 4",""]],
+  toc:[["A2",""],["A2",""],["A2","B1"],["B1",""]],
+  ap:["AP 3","AP 4","AP 5","AP 5"]}}};
+let sched=2;
+const lv=c=>{if(!c)return '<span class="na"></span>';const [s,n]=c;return (s==="—"?"Not yet":s)+(n?`<span class="sp">within reach: ${n}</span>`:"")};
+let mode="l";
+function renderX(){
+  const d=D[sched][mode];
+  const head=`<thead><tr><th rowspan="2">Grade</th><th class="num" rowspan="2">Periods/wk</th><th rowspan="2">ACTFL</th><th class="num" rowspan="2">Words taught</th><th class="num" rowspan="2">Grammar pts (est.)</th><th colspan="4" class="grp">Level alignment</th></tr><tr><th>YCT<span class="sp">G3–5</span></th><th>HSK 3.0<span class="sp">G6–12</span></th><th>TOCFL<span class="sp">G9–12</span></th><th>AP (est.)<span class="sp">G9–12</span></th></tr></thead>`;
+  const rows=G.map((g,i)=>{const cls=(g===6||g===9||g===11)?' class="seg-start"':(g===12?' class="hl"':"");
+    const y=g<=5?lv(d.yct[i]):"", h=g>=6?"<b>"+lv(d.hsk[i-3])+"</b>":"", t=g>=9?lv(d.toc[i-6]):"", a=g>=9?"<b>"+d.ap[i-6]+"</b>":"";
+    const td=(v)=>v?`<td class="lv">${v}</td>`:`<td class="na"></td>`;
+    return `<tr${cls}><td class="g">G${g}<span class="sp">${SEG(g)}</span></td><td class="num">${PER(g)}</td><td class="lv">${d.act[i]}</td><td class="num">${d.w[i].toLocaleString()}</td><td class="num">${d.gr[i]}</td>${td(y)}${td(h)}${td(t)}${td(a)}</tr>`}).join("");
+  $("xTable").innerHTML=head+`<tbody>${rows}</tbody>`;
+}
+document.querySelectorAll("#schedSeg button").forEach(b=>b.onclick=()=>{sched=+b.dataset.t;document.querySelectorAll("#schedSeg button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderX();draw()});
+document.querySelectorAll("#modeSeg button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll("#modeSeg button").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderX()});
+renderX();
+const CMP=[["End of G8","Language ability first","630","HSK 2","810","HSK 2","—","—"],
+ ["End of G8","Exam alignment first","810","HSK 2","1,035","HSK 2 (3 within reach)","—","—"],
+ ["End of G12","Language ability first","1,710","HSK 3","1,890","HSK 3","AP 3","AP 4"],
+ ["End of G12","Exam alignment first","2,430","HSK 4","2,655","HSK 4","AP 5","AP 5 · TOCFL B1"]];
+$("cmpTable").innerHTML=`<thead><tr><th rowspan="2">When</th><th rowspan="2">Pace</th><th colspan="2" class="grp">2 periods/week</th><th colspan="2" class="grp">3 periods/week</th><th colspan="2" class="grp">AP (est.)</th></tr><tr><th class="num">Words</th><th>HSK 3.0</th><th class="num">Words</th><th>HSK 3.0</th><th>2/wk</th><th>3/wk</th></tr></thead><tbody>`+
+ CMP.map((r,i)=>`<tr${i===2?' class="seg-start"':''}><td class="g">${r[0]}</td><td><span class="pill ${r[1].startsWith("Lang")?"l":"x"}">${r[1]}</span></td><td class="num">${r[2]}</td><td class="lv">${r[3]}</td><td class="num"><b>${r[4]}</b></td><td class="lv"><b>${r[5]}</b></td><td class="lv">${r[6]}</td><td class="lv"><b>${r[7]}</b></td></tr>`).join("")+"</tbody>";
+
+const PC=[["Mandarin I, measured","1.8<small> words / period</small>","Weeks 1–15: 75 periods, 135 new words, 32 sentence patterns. Mid-term averages 89–97.5."],
+ ["On the exam lists","88%","119 of the 135 words are on the HSK 1–5 lists; 107 (79%) on levels 1–2."],
+ ["Mandarin Exploration, designed","2.5<small> words / period</small>","About 150 words in 60 periods a year: broad vocabulary, light character load."],
+ ["Old HSK adult reference","3.7–5.6<small> words / period</small>","\"2–3 class hours a week, 600 words in three semesters\" (2010 HSK Level 3 syllabus). Aimed at adults; an upper bound only."]];
+$("paceCards").innerHTML=PC.map(p=>`<div class="card"><span class="k">${p[0]}</span><div class="big">${p[1]}</div><p>${p[2]}</p></div>`).join("");
+
+const s=$("chart");
+function cv(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function draw(){
+  const W=s.clientWidth,H=s.clientHeight;if(!W||!H)return;const small=W<520;
+  const L=small?44:62,R=small?62:112,T=14,Bm=46;const pw=W-L-R,ph=H-T-Bm;const ymax=2500;
+  const x=i=>L+pw*(i+0.5)/10,y=v=>T+ph*(1-v/ymax);
+  let h="";
+  [[3,5,"2"],[6,8,"2"],[9,10,"5"],[11,12,"5"]].forEach((b,k)=>{const x0=L+pw*(b[0]-3)/10,x1=L+pw*(b[1]-2)/10;
+    h+=`<rect x="${x0}" y="${T}" width="${x1-x0}" height="${ph}" fill="${k%2?cv("--soft"):"transparent"}" opacity=".7"/>`;
+});
+  [[300,"HSK 1"],[500,"HSK 2"],[1000,small?"HSK 3":"HSK 3 · TOCFL A2"],[2000,"HSK 4"]].forEach(t=>{h+=`<line x1="${L}" x2="${L+pw}" y1="${y(t[0])}" y2="${y(t[0])}" stroke="${cv("--muted")}" stroke-dasharray="4 4" stroke-width="1"/><text x="${L+pw+6}" y="${y(t[0])+4}" style="fill:${cv("--ink")};font-weight:500">${t[1]}</text>`});
+  [0,500,1000,1500,2000,2500].forEach(v=>{h+=`<text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v.toLocaleString()}</text>`});
+  G.forEach((g,i)=>{h+=`<text x="${x(i)}" y="${T+ph+18}" text-anchor="middle">G${g}</text>`});
+  [2,3].forEach(t=>{const on=t===sched;[["l","--lang"],["x","--exam"]].forEach(([k,c])=>{const v=D[t][k].e;const col=cv(c);
+    h+=`<path d="${v.map((n,i)=>(i?"L":"M")+x(i)+","+y(n)).join(" ")}" fill="none" stroke="${col}" stroke-width="${on?3.5:2}" ${t===3?'stroke-dasharray="7 5"':""} opacity="${on?1:.3}" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if(on){v.forEach((n,i)=>{h+=`<circle cx="${x(i)}" cy="${y(n)}" r="${i===9?6:3.5}" fill="${i===9?col:cv("--surface")}" stroke="${col}" stroke-width="2"/>`});
+    h+=`<text x="${x(9)+10}" y="${y(v[9])+4}" text-anchor="start" style="fill:${col};font-weight:700;font-size:13px">${v[9].toLocaleString()}</text>`}})});
+  [[3,5,"2"],[6,8,String(sched)],[9,10,"5"],[11,12,"5"]].forEach((b,k)=>{const x0=L+pw*(b[0]-3)/10,x1=L+pw*(b[1]-2)/10;h+=`<text x="${(x0+x1)/2}" y="${H-8}" text-anchor="middle">${small?"":b[2]+" per week"}</text>`});
+  s.innerHTML=h;
+}
+const ro=new ResizeObserver(draw);ro.observe(s);
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",draw);
+}
+</script>
+</body></html>
