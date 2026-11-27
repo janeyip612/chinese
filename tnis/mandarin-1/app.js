@@ -19,13 +19,14 @@ const stWords = (st) => st.words.map((w) => split(w).h);
 const KEY = "m1map.v1";
 let store = { items: {}, streak: 0, lastDay: -1, reviews: 0, pinyin: true };
 try { const raw = localStorage.getItem(KEY); if (raw) store = Object.assign(store, JSON.parse(raw)); } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} if (typeof markDirty === "function") { try { markDirty(); } catch (e) {} } };
 const item = (id) => store.items[id] || { b: 0, d: 0, seen: 0 };
 function grade(id, ok, hinted, retry) {
   const it = item(id);
   const t = today();
   const firstToday = it.last !== t;
   it.seen++;
+  store.ans = store.ans || {}; store.ans[t] = (store.ans[t] || 0) + 1;
   if (REVIEW) {
     // pinyin hint is fine (the exam has pinyin); a retry or a second try on the same day is not
     if (ok && !retry && firstToday) { it.b = Math.max(it.b, 2); it.d = t + INTERVALS[it.b]; }
@@ -164,7 +165,7 @@ function viewMap() {
       <div class="today-side"><div class="stat"><b>${store.streak}</b><span>day<br>streak</span></div>
       <a class="btn primary" href="#review">Start</a></div>
     </section>`;
-  html += `<p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. ${REVIEW ? reviewIntro() : A.p ? `You have practised <b>${A.p}</b> of ${A.n} items · <b>${A.once}</b> right once · <b>${A.k}</b> learned.` : `Start with the Daily review or open any station.`}</p>${lockLine()}`;
+  html += `<p class="map-intro">Each station is something you have learned. Open one to review its words and sentence patterns. ${REVIEW ? reviewIntro() : A.p ? `You have practised <b>${A.p}</b> of ${A.n} items · <b>${A.once}</b> right once · <b>${A.k}</b> learned.` : `Start with the Daily review or open any station.`}</p>${syncBanner()}${lockLine()}`;
   mapLines().forEach((z) => {
     const sts = z.sts;
     html += `<section class="line" style="--c: var(${z.color})"><h3 class="line-name"><span class="line-badge">${esc(z.name)}</span><span class="en zh">${esc(z.zh)}</span></h3><ol class="stops">`;
@@ -360,6 +361,7 @@ function finishOrder(ok) {
   if (!ok) q.tray = q.x.t.map((_, k) => k);
   q.state = ok ? "ok" : "shown";
   grade(q.id, ok, q.hinted, !first);
+  if (quiz.mode === "test") logTest(first);
   const zh = q.x.t.map((t) => t[0]).join("") + q.x.e; const py = q.x.t.map((t) => t[1]).filter(Boolean).join(" ");
   q.after = zh;
   if (first) quiz.right++; else quiz.wrong.push(q);
@@ -383,7 +385,7 @@ document.addEventListener("click", (ev) => {
 });
 function showQ() {
   const q = quiz.qs[quiz.i];
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : (quiz.mode === "final" || quiz.mode === "test") ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
   main.innerHTML = `<a class="back" href="${back}">← Leave</a>
   <section class="quiz">
     <div class="q-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${quiz.qs.length}" aria-valuenow="${quiz.i}"><i style="width:${(quiz.i / quiz.qs.length) * 100}%"></i></div>
@@ -404,7 +406,7 @@ document.addEventListener("click", (ev) => {
   const q = quiz.qs[quiz.i]; const o = q.opts[+b.dataset.j];
   document.querySelectorAll(".q-opts .opt").forEach((x, j) => { x.disabled = true; if (q.opts[j].ok) x.classList.add("right"); });
   if (!o.ok) b.classList.add("wrong");
-  grade(q.id, o.ok, q.hinted); const hb = document.getElementById("hint"); if (hb) hb.remove(); if (o.ok) quiz.right++; else quiz.wrong.push(q);
+  grade(q.id, o.ok, q.hinted); if (quiz.mode === "test") logTest(o.ok); const hb = document.getElementById("hint"); if (hb) hb.remove(); if (o.ok) quiz.right++; else quiz.wrong.push(q);
   let fb = o.ok ? `<p class="fb-ok">Correct!</p>` : `<p class="fb-no">Not quite.</p>`;
   if (q.answer) fb += `<p class="fb-word">${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</p>`;
   if (q.after) fb += `<p class="fb-word"><span class="zh">${esc(q.after)}</span></p>`;
@@ -427,16 +429,16 @@ document.addEventListener("click", (ev) => {
     store.reviews++; save();
   }
   const n = quiz.qs.length, r = quiz.right;
-  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : quiz.mode === "final" ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
+  const back = quiz.mode === "station" ? `#s-${quiz.sid}` : (quiz.mode === "final" || quiz.mode === "test") ? "#final" : quiz.mode === "fix" || quiz.mode === "new" ? "#progress" : "#map";
   main.innerHTML = `<section class="done">
     <h2>${r}/${n}</h2>
     <p>${r === n ? "All correct!" : r >= n * 0.7 ? "Well done." : "Good effort. The words you missed will come back in your next review."}</p>
     ${quiz.mode === "review" ? `<p class="streak"><b>${store.streak}</b> day streak</p>` : ""}
     ${quiz.wrong.length ? `<div class="missed"><h3>Have another look</h3><ul>${quiz.wrong.map((q) => q.answer ? `<li>${spk(q.answer.h)}<span class="zh">${esc(q.answer.h)}</span> <span class="py-always">${esc(q.answer.p)}</span> · ${esc(q.answer.e)}</li>` : `<li>${q.type === "order" ? spk(q.after) : ""}<span class="zh">${esc(q.after || "")}</span></li>`).join("")}</ul></div>` : ""}
     ${quiz.mode === "station" ? (() => { const ss = stationStats(ST[quiz.sid]); return `<p class="hint">You have practised <b>${ss.p}</b> of ${ss.n} items in this station${ss.p < ss.n ? ". The next set starts with the ones you haven't done yet." : "."}</p>`; })() : ""}
-    ${lockLine()}
+    ${quiz.mode === "test" ? `<p class="lock">Today's ${quiz.kind === "g" ? "grammar" : "sentence"} test is saved: <b>${r}/${n}</b>. ${SYNC_ON ? "It is saved for your teacher automatically." : "Your teacher sees it when you press Send to teacher on My progress."}</p>` : lockLine()}
     ${quiz.mode === "fix" ? `<p class="lock">Done for today. Tomorrow, get these right on the first try and they count as learned.</p>` : ""}
-    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" ? "Back to final review" : back === "#progress" ? "Back to My progress" : "Back to map"}</a>`}</div>
+    <div class="done-actions">${quiz.mode === "station" ? `<button type="button" class="btn primary" id="again" data-sid="${esc(quiz.sid)}">Practise another set</button> <a class="btn ghost" href="${back}">Back to station</a>` : `<a class="btn primary" href="${back}">${quiz.mode === "final" || quiz.mode === "test" ? "Back to final review" : back === "#progress" ? "Back to My progress" : "Back to map"}</a>`}</div>
   </section>`;
   quiz = null;
 });
@@ -464,7 +466,7 @@ function makeCode() {
     if (id.startsWith("w:")) w += id.slice(2) + v; else g.push(id + "=" + v);
   }
   const f = Object.keys(store.flags || {}).filter((h) => store.flags[h]).join(",");
-  return "M1." + b64e(["3", today(), store.streak, store.reviews, store.lastDay, w, g.join(","), f].join("|"));
+  return "M1." + b64e(["3", today(), store.streak, store.reviews, store.lastDay, w, g.join(","), f, testsCode()].join("|"));
 }
 function restoreCode(code) {
   const c = String(code || "").replace(/\s+/g, "");
@@ -478,7 +480,8 @@ function restoreCode(code) {
   for (const m of parts[5].matchAll(/(\D+?)(\d)(!?)/g)) put("w:" + m[1], m[2] + m[3]);
   for (const kv of parts[6].split(",").filter(Boolean)) { const k = kv.lastIndexOf("="); put(kv.slice(0, k), kv.slice(k + 1)); }
   const flags = {}; (parts[7] || "").split(",").filter(Boolean).forEach((h) => { flags[h] = true; });
-  store = { items, flags, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
+  const tests = Object.assign({}, store.tests || {}, testsFromCode(parts[8]));
+  store = { items, flags, tests, ans: store.ans || {}, streak: +parts[2] || 0, reviews: +parts[3] || 0, lastDay: Number.isFinite(+parts[4]) ? +parts[4] : -1, pinyin: store.pinyin };
   save();
 }
 const wChip = (h) => { const w = WORDS[h] || { p: "", e: "" }; return `<span class="wchip">${spk(h)}<span class="zh">${esc(h)}</span><span class="py">${esc(w.p)}</span><span class="en">${esc(w.e)}</span></span>`; };
@@ -519,10 +522,186 @@ function hskStats() {
   const onMap = HSK1.filter((h) => WORDS[h]);
   return { n: HSK1.length, map: onMap.length, k: onMap.filter(known).length, p: onMap.filter(practised).length };
 }
+
+// ───────── daily test (final week, PLAN in data.js) ─────────
+// One test a day: Grammar check 10 + Sentence building 10 on today's units. The set is fixed when it starts,
+// so leaving and coming back continues the same questions. Only first answers count (a pinyin hint is fine).
+store.tests = store.tests || {};
+const planToday = () => { if (typeof PLAN === "undefined" || typeof EXAM === "undefined") return null; const t = today(); const k = Object.keys(PLAN).find((iso) => dayOf(iso) === t); return k ? { iso: k, ...PLAN[k] } : null; };
+const unitSts = (i) => (EXAM.units[i] ? EXAM.units[i].stations.map((id) => ST[id]).filter((s) => s && !s.locked) : []);
+const unitNames = (us) => us.map((i) => (EXAM.units[i] ? EXAM.units[i].label.split(" · ")[0] : "")).join(" + ");
+function testIds(kind, units) { // today's first unit first, the next units top the set up to 10
+  const out = [];
+  units.forEach((u) => shuffle(kind === "g" ? grammarItems(unitSts(u)).map(idOf) : sentItems(unitSts(u))).forEach((id) => { if (out.length < 10 && !out.includes(id)) out.push(id); }));
+  return out;
+}
+function startTest(kind) {
+  const p = planToday(); if (!p) return false;
+  const t = today(); const day = (store.tests[t] = store.tests[t] || {});
+  if (!day[kind] || !day[kind].ids.length) { day[kind] = { u: p.test.slice(), ids: testIds(kind, p.test), ans: [] }; save(); }
+  const rec = day[kind]; if (!rec.ids.length || rec.ans.length >= rec.ids.length) return false;
+  startQuiz(rec.ids.map(qOf), "test"); quiz.kind = kind; quiz.i = rec.ans.length; quiz.right = rec.ans.filter(Boolean).length; showQ(); return true;
+}
+function logTest(ok) { const rec = (store.tests[today()] || {})[quiz.kind]; if (rec && rec.ans.length === quiz.i) { rec.ans.push(ok ? 1 : 0); save(); } }
+const testDone = (rec) => !!rec && rec.ids.length > 0 && rec.ans.length >= rec.ids.length;
+const testScore = (rec) => rec.ans.reduce((a, b) => a + b, 0);
+const dayName = (d) => new Date(d * 86400000).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+function testSummary() {
+  const rows = []; let R = 0, N = 0;
+  Object.keys(store.tests).map(Number).sort((a, b) => a - b).forEach((d) => {
+    const x = store.tests[d]; const part = (k) => { const r = x[k]; if (!testDone(r)) return null; R += testScore(r); N += r.ids.length; return testScore(r) + "/" + r.ids.length; };
+    const g = part("g"), o = part("o"); if (g || o) rows.push({ d, g, o });
+  });
+  return { rows, R, N, avg: N ? Math.round((R / N) * 100) : null };
+}
+function testLine() {
+  const s = testSummary(); if (!s.rows.length) return "Daily test: none yet";
+  return `Daily test average ${s.avg}% (${s.R}/${s.N}) · ` + s.rows.map((r) => `${dayName(r.d)} grammar ${r.g || "–"} sentences ${r.o || "–"}`).join(" · ");
+}
+// code part 8: "<day>:g<bits>,o<bits>;…" (finished tests only)
+function testsCode() {
+  return Object.keys(store.tests).map((d) => { const x = store.tests[d]; const p = ["g", "o"].filter((k) => testDone(x[k])).map((k) => k + x[k].ans.join("")); return p.length ? d + ":" + p.join(",") : ""; }).filter(Boolean).join(";");
+}
+function testsFromCode(s) {
+  const out = {};
+  String(s || "").split(";").filter(Boolean).forEach((e) => { const [d, rest] = e.split(":"); if (!rest || !Number.isFinite(+d)) return; const x = (out[+d] = {}); rest.split(",").forEach((p) => { const k = p[0], bits = p.slice(1); if ((k === "g" || k === "o") && /^[01]+$/.test(bits)) x[k] = { u: [], ids: bits.split("").map((_, i) => "restored:" + i), ans: bits.split("").map(Number) }; }); });
+  return out;
+}
+function goalLine(ready) {
+  const p = planToday(); if (!p) return "";
+  const ok = ready >= p.target;
+  return `<p class="hint">Today's goal: <b>${p.target}%</b> ready by tonight${ok ? " · <b>reached ✓</b>" : ` · ${p.target - ready} to go`}. Review <b>${esc(unitNames(p.units))}</b> today.</p>`;
+}
+function todayTestBlock() {
+  const p = planToday(); if (!p) return "";
+  const day = store.tests[today()] || {};
+  const btn = (k, name) => { const r = day[k]; if (testDone(r)) return `<span class="chip">${name} ✓ ${testScore(r)}/${r.ids.length}</span>`; return `<a class="btn primary" href="#t${k}">${r && r.ans.length ? "Continue" : "Start"}: ${name} test</a>`; };
+  return `<section class="block"><h3>今日测试 · Today's test</h3>
+    <p class="hint">${esc(dayName(today()))} · ${esc(unitNames(p.test.slice(0, 1)))}${p.test.length > 1 ? ", topped up with " + esc(unitNames(p.test.slice(1))) : ""}. 10 grammar questions + 10 sentences. Only your first answer counts and the score goes to your teacher. If you leave, you come back to the same questions.</p>
+    <p>${btn("g", "Grammar")} ${btn("o", "Sentence")}</p>
+    ${goalLine(examStats().ready)}
+  </section>`;
+}
+function testsBlock() {
+  const s = testSummary(); if (!s.rows.length && !planToday()) return "";
+  return `<section class="block"><h3>Daily tests</h3>
+    ${s.rows.length ? `<ul class="plist">${s.rows.map((r) => `<li><span class="pname"><span class="en">${esc(dayName(r.d))}</span></span><span>Grammar ${r.g || "–"} · Sentences ${r.o || "–"}</span></li>`).join("")}</ul><p class="hint">Average: <b>${s.avg}%</b>. ${SYNC_ON ? "Your scores save for your teacher automatically." : "Press Send to teacher below so your teacher gets your scores."}</p>` : `<p class="hint">No test yet. <a href="#final">Today's test →</a></p>`}
+  </section>`;
+}
+
+// ───────── auto-save to the school's Google Sheet (SYNC in data.js) ─────────
+// Students sign in once with their school Google account. Every change is saved on this device and,
+// a few seconds later, in the teacher's Sheet. On a new computer, signing in brings the progress back.
+const SYNC_ON = typeof SYNC !== "undefined" && !!SYNC.url && !!SYNC.clientId;
+const MAPID = KEY.startsWith("m1") ? "M1" : "M2";
+const AKEY = KEY + ".auth";
+const sync = { auth: null, state: "off", at: 0, dirty: false, timer: null, msg: "" };
+try { sync.auth = JSON.parse(localStorage.getItem(AKEY)) || null; } catch (e) {}
+const isoOf = (d) => new Date(d * 86400000).toISOString().slice(0, 10);
+function api(body, keepalive) {
+  return fetch(SYNC.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), keepalive: !!keepalive })
+    .then((r) => r.json());
+}
+function markDirty() {
+  if (!SYNC_ON) return;
+  sync.dirty = true;
+  if (sync.auth && !sync.timer) sync.timer = setTimeout(() => { sync.timer = null; pushNow(); }, 8000);
+}
+function syncPayload() {
+  const t = today(); const A = allStats(); const p = planToday(); const s = testSummary();
+  const es = REVIEW && typeof EXAM !== "undefined" ? examStats() : null;
+  const tests = {};
+  s.rows.forEach((r) => { const a = (r.g || "0/0").split("/").map(Number), b = (r.o || "0/0").split("/").map(Number); tests[isoOf(r.d)] = (a[0] + b[0]) + "/" + (a[1] + b[1]); });
+  return { action: "save", secret: sync.auth.secret, map: MAPID, day: isoOf(t), ready: es ? es.ready : "", goal: p ? p.target : "",
+    units: es ? es.units.map((u) => `${u.label.split(" · ")[0]} ${u.k}/${u.n}`).join(" · ") : "",
+    fix: es ? fixIds(es).length : "", notPractised: es ? es.all.filter((id) => !(item(id).seen > 0)).length : "",
+    learned: A.k, practised: A.p, total: A.n, testAvg: s.avg === null ? "" : s.avg, tests, answersToday: (store.ans || {})[t] || 0, code: makeCode() };
+}
+function pushNow(keepalive) {
+  if (!SYNC_ON || !sync.auth || !sync.dirty || sync.state === "saving") return;
+  sync.state = "saving"; sync.dirty = false; syncBadge();
+  api(syncPayload(), keepalive).then((r) => {
+    if (r.ok) { sync.state = "saved"; sync.at = Date.now(); }
+    else if (/sign in again/.test(r.error || "")) { signOut(); sync.msg = "Please sign in again."; }
+    else { sync.state = "error"; sync.dirty = true; sync.msg = r.error || ""; }
+  }).catch(() => { sync.state = "offline"; sync.dirty = true; setTimeout(() => pushNow(), 60000); })
+    .finally(() => { syncBadge(); if (sync.dirty && sync.state === "saved") markDirty(); });
+}
+// a progress code from the server is merged item by item: the newer answer wins
+function mergeCode(code) {
+  const mine = JSON.parse(JSON.stringify(store));
+  try { restoreCode(code); } catch (e) { store = mine; save(); return; }
+  for (const [id, it] of Object.entries(mine.items || {})) {
+    const s = store.items[id];
+    if (!s || (it.last || 0) > (s.last || 0) || ((it.last || 0) === (s.last || 0) && (it.b || 0) >= (s.b || 0))) store.items[id] = it;
+  }
+  store.flags = Object.assign({}, store.flags, mine.flags || {});
+  for (const [d, x] of Object.entries(mine.tests || {})) store.tests[d] = Object.assign({}, store.tests[d] || {}, x);
+  store.ans = mine.ans || {}; store.streak = Math.max(store.streak || 0, mine.streak || 0); store.reviews = Math.max(store.reviews || 0, mine.reviews || 0);
+  store.pinyin = mine.pinyin; save();
+}
+function onCredential(resp) {
+  sync.state = "saving"; sync.msg = ""; syncBadge();
+  api({ action: "login", map: MAPID, idToken: resp.credential }).then((r) => {
+    if (!r.ok) { sync.state = "signed-out"; sync.msg = r.error || "Sign-in failed."; return; }
+    sync.auth = { email: r.email, name: r.name, secret: r.secret };
+    try { localStorage.setItem(AKEY, JSON.stringify(sync.auth)); } catch (e) {}
+    if (r.code) mergeCode(r.code);
+    sync.state = "idle"; sync.dirty = true; pushNow();
+  }).catch(() => { sync.state = "signed-out"; sync.msg = "No connection. Try again in a moment."; })
+    .finally(() => { syncBadge(); route(); });
+}
+function signOut() {
+  sync.auth = null; sync.state = "signed-out";
+  try { localStorage.removeItem(AKEY); } catch (e) {}
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+}
+let gisReady = null;
+function gisLoad() {
+  if (!gisReady) gisReady = new Promise((res) => {
+    if (window.google && window.google.accounts) return res();
+    const s = document.createElement("script"); s.src = "https://accounts.google.com/gsi/client"; s.async = true; s.onload = () => res(); document.head.appendChild(s);
+  }).then(() => google.accounts.id.initialize({ client_id: SYNC.clientId, callback: onCredential, hd: SYNC.domain, ux_mode: "popup", auto_select: false }));
+  return gisReady;
+}
+function syncAfterRender() {
+  if (!SYNC_ON || sync.auth) return;
+  const slots = document.querySelectorAll(".gsi-slot:not([data-done])"); if (!slots.length) return;
+  gisLoad().then(() => slots.forEach((el) => { el.dataset.done = "1"; google.accounts.id.renderButton(el, { theme: "outline", size: "large", text: "signin_with", shape: "pill" }); }));
+}
+function syncBadge() {
+  if (!SYNC_ON) return;
+  let b = document.getElementById("sync-badge");
+  if (!b) { const nav = document.querySelector("nav"); if (!nav) return; nav.insertAdjacentHTML("beforeend", '<a id="sync-badge" class="tab" href="#progress"></a>'); b = document.getElementById("sync-badge"); }
+  const t = sync.at ? new Date(sync.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+  b.textContent = !sync.auth ? "⚠ Not saving: sign in" : sync.state === "saving" ? "Saving…" : sync.state === "offline" ? "⚠ Offline, will retry" : sync.state === "error" ? "⚠ Not saved" : t ? `✓ Saved ${t}` : "✓ Signed in";
+}
+function syncBanner() {
+  if (!SYNC_ON || sync.auth) return "";
+  return `<section class="block"><h3>Sign in to save your progress</h3><p class="hint">Use your school Google account (@${esc(SYNC.domain)}). Your progress then saves for your teacher automatically, and comes back on any computer.</p><div class="gsi-slot"></div>${sync.msg ? `<p class="hint"><b>${esc(sync.msg)}</b></p>` : ""}</section>`;
+}
+function syncBlock() {
+  if (!SYNC_ON) return "";
+  if (!sync.auth) return syncBanner();
+  const t = sync.at ? new Date(sync.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }) : "";
+  return `<section class="block"><h3>Saved for your teacher</h3><p class="hint">Signed in as <b>${esc(sync.auth.email)}</b>. Your progress saves automatically${t ? ` · last saved ${t}` : ""}.${sync.msg ? ` <b>${esc(sync.msg)}</b>` : ""}</p>
+    <p><button type="button" class="btn ghost small" id="sync-now">Save now</button> <button type="button" class="btn ghost small" id="sync-out">Not you? Sign out</button></p></section>`;
+}
+document.addEventListener("click", (ev) => {
+  if (ev.target.id === "sync-now") { sync.dirty = true; pushNow(); }
+  if (ev.target.id === "sync-out") { signOut(); route(); syncBadge(); }
+});
+function syncStart() {
+  if (!SYNC_ON) return;
+  sync.state = sync.auth ? "idle" : "signed-out";
+  syncBadge(); syncAfterRender();
+  if (sync.auth) { sync.dirty = true; pushNow(); }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") pushNow(true); });
+}
 function reviewIntro() {
   if (typeof EXAM === "undefined") return "";
   const es = examStats(); const d = daysToExam();
-  return `<b>Final exam review:</b> you are <b>${es.ready}%</b> ready${d > 0 ? ` · ${d} days to go` : ""}. Practise a station, then <a href="#progress">see what's left →</a>`;
+  return `<b>Final exam review:</b> you are <b>${es.ready}%</b> ready${d > 0 ? ` · ${d} days to go` : ""}. Practise a station, then <a href="#progress">see what's left →</a>${planToday() ? `<br>Today: review <b>${esc(unitNames(planToday().units))}</b> · goal <b>${planToday().target}%</b> ready by tonight · <a href="#final">today's test →</a>` : ""}`;
 }
 function viewProgressReview(msg) {
   setTab("progress");
@@ -536,19 +715,22 @@ function viewProgressReview(msg) {
   params.set(ENTRY.code, code);
   params.set(ENTRY.words, `exam ready ${es.ready}% · ${es.units.map((u) => `${u.label.split(" · ")[0]} ${u.k}/${u.n}`).join(" · ")} · to fix ${fixN} · not practised ${newN} | learned ${A.k}/${A.n} · practised ${A.p}${H ? ` | HSK1 ${H.k}/${H.n}` : ""}`);
   params.set(ENTRY.stations, `${m}/${sts.length}`);
-  params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
+  if (ENTRY.test) { params.set(ENTRY.test, testLine()); params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`); }
+  else params.set(ENTRY.reviews, `${testLine()} | ${store.reviews} reviews (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
   params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Not yet learned: ${notYetW.join("、") || "none"}`);
   if (ENTRY.wrong) params.set(ENTRY.wrong, wrongW.join("、") || "none");
   if (ENTRY.pending) params.set(ENTRY.pending, notYetW.join("、") || "none");
-  const formUrl = FORM ? FORM + "?" + params.toString() : "";
+  const formUrl = FORM && !SYNC_ON ? FORM + "?" + params.toString() : "";
   const dateTxt = new Date(EXAM.date + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long" });
   main.innerHTML = `<section class="block"><h2>Final exam review</h2>
     <p class="hint">${esc(EXAM.name)}: from ${esc(dateTxt)}${d > 0 ? ` · <b>${d}</b> days to go` : ""}</p>
     <div class="ready"><b>${es.ready}%</b><span>ready for the exam</span></div>
     <ul class="plist exam">${es.units.map((u) => `<li><span class="pname"><span class="zh">${esc(u.label.split(" · ")[0])}</span><span class="en">${esc(u.label.split(" · ").slice(1).join(" · "))}</span></span>${meter2(u.k, u.p, u.n)}<span class="num">${u.k}/${u.n}<small>learned</small></span><span>${u.n && u.k === u.n ? "✓" : ""}</span></li>`).join("")}</ul>
     <p class="hint"><b>Learned</b> = right on your first try of the day. A pinyin hint is fine: the exam paper has pinyin too. ${EXAM.weights.map((w) => `Weeks ${w.from}–${w.to} count for ${w.weight}%`).join(", ")} of the exam.</p>
+    ${goalLine(es.ready)}
   </section>
+  ${testsBlock()}
   <section class="block"><h3>What to review next</h3>
     <h4 class="step">1 · By station</h4>
     <p class="hint">Open a station on the map and practise it. Dark = learned · light = practised.</p>
@@ -562,6 +744,7 @@ function viewProgressReview(msg) {
     <ul class="plist exam"><li><span class="pname"><span class="zh">HSK 1</span><span class="en">300 words</span></span>${meter2(H.k, H.p, H.n)}<span class="num">${H.k}/${H.n}<small>learned</small></span><span></span></li></ul>
     <p class="hint">Your map has ${H.map} of the 300 HSK 1 words so far. You will meet the rest next term, on the way to the HSK 1 test.</p>
   </section>` : ""}
+  ${syncBlock()}
   ${formUrl ? `<section class="block"><h3>Send to your teacher</h3>
     <p class="hint">The form opens with your progress already filled in. Sign in with your school account, check it, then press Submit.</p>
     <a class="btn primary" id="send" href="${esc(formUrl)}" target="_blank" rel="noopener">Send to teacher</a>
@@ -590,7 +773,8 @@ function viewProgress(msg) {
   params.set(ENTRY.code, code);
   params.set(ENTRY.words, `${A.p}/${A.n} practised · ${A.once} right once · ${A.k} learned | learned: words ${A.w.k}/${A.w.n} · grammar ${A.g.k}/${A.g.n} · sentences ${A.o.k}/${A.o.n}`);
   params.set(ENTRY.stations, `${m}/${sts.length}`);
-  params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`);
+  if (ENTRY.test) { params.set(ENTRY.test, testLine()); params.set(ENTRY.reviews, `${store.reviews} (streak ${store.streak} days)`); }
+  else params.set(ENTRY.reviews, `${testLine()} | ${store.reviews} reviews (streak ${store.streak} days)`);
   params.set(ENTRY.detail, sts.map((x) => `${x.s.title} ${x.k}/${x.n}`).join("; "));
   params.set(ENTRY.practise, `Wrong: ${wrongW.join("、") || "none"} | Settling: ${settlingW.join("、") || "none"}`);
   if (ENTRY.wrong) params.set(ENTRY.wrong, wrongW.join("、") || "none");
@@ -663,6 +847,7 @@ function viewFinal() {
   const gs = grammarItems(zoneStations(fin.gz)).map(idOf); const gk = gs.filter(knownId).length;
   const scope = REVIEW && typeof EXAM !== "undefined" ? `The ${esc(EXAM.name.toLowerCase())} covers Weeks ${EXAM.weights[0].from}–${EXAM.weights[EXAM.weights.length - 1].to}.` : "The final exam covers everything from Week 1.";
   main.innerHTML = `<section class="block"><h2>总复习 · Final review</h2><p class="hint">${scope} Three steps, unit by unit or all mixed: 1 · find the words you still need on the word wall · 2 · check the grammar · 3 · build sentences.</p></section>
+  ${todayTestBlock()}
   <section class="block"><h3>生词墙 · Word wall</h3>
     <p class="hint"><b class="k-need">Red</b> = words to practise: you got them wrong, or you marked them ★ Not sure. <b class="k-ok">Green</b> = learned. Tap a word for its pinyin and meaning. Tap ☆ to mark a word you haven't remembered yet; tap it again when you know it.</p>
     <div class="zrow">${chips(fin.z, "wz")}</div>
@@ -708,10 +893,13 @@ function route() {
   if (h === "progress") return viewProgress();
   if ((h === "fix" || h === "new") && REVIEW && typeof EXAM !== "undefined") { setTab("progress"); const qs = h === "fix" ? buildFix() : buildNew(); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, h); } return viewProgress(); }
   if (h === "final") { quiz = null; return viewFinal(); }
+  if (h === "tg" || h === "to") { setTab("final"); window.scrollTo(0, 0); if (startTest(h[1])) return; location.hash = "#final"; return; }
   if (h.startsWith("fw-") || h.startsWith("fo-") || h.startsWith("fg-")) { setTab("final"); const z = h.slice(3); const qs = h[1] === "w" ? buildFinalWords(z) : h[1] === "g" ? buildFinalGrammar(z) : buildFinalOrder(z); if (qs.length) { window.scrollTo(0, 0); return startQuiz(qs, "final"); } return viewFinal(); }
   if (h.startsWith("s-")) return viewStation(h.slice(2));
   if (h.startsWith("p-") && ST[h.slice(2)]) { setTab("map"); return startQuiz(buildPractice(h.slice(2)), "station", h.slice(2)); }
   quiz = null; viewMap();
 }
 window.addEventListener("hashchange", route);
+new MutationObserver(syncAfterRender).observe(main, { childList: true });
 route();
+syncStart();
