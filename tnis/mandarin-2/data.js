@@ -33,6 +33,24 @@ const EXAM = {
     { label: "Unit 3 · Community, shopping & opinions", zh: "社区、购物与观点", stations: ["c3", "d1", "d2", "d3", "d4", "d5", "d6"] },
   ],
 };
+// Auto-save to the school's Google Sheet (Jane, 2026-11-27). Fill in both after the one-time setup;
+// leave them empty and the map works as before (students press Send to teacher).
+const SYNC = {
+  url: "https://script.google.com/macros/s/AKfycbyFqt9SCjGI9TfzADZlhcLkPEqwnnFQoUqjEHb2k_Ku-X4n1oICP63cVSsOslhSh4p5/exec",      // Apps Script web app URL (Deploy → Web app), ends with /exec
+  clientId: "814688669600-1qh85snv7mqjuc5n2iklpn7gdujad97l.apps.googleusercontent.com", // Google Cloud → Credentials → OAuth client ID (Web), ends with .apps.googleusercontent.com
+  domain: "truenorth.edu.vn",
+};
+// Final week plan (Jane, 2026-11-27): newest unit to oldest, 90% ready by Friday.
+// units = what to review today, test = today's test (first unit first; the next ones top it up to 10),
+// target = class goal for "ready" by the end of the day. Numbers are EXAM.units positions (0 = Unit 1, 1 = Unit 2, 2 = Unit 3).
+// The daily-test average is the Mandarin II F5 score.
+const PLAN = {
+  "2026-11-30": { units: [2], test: [2], target: 30 },
+  "2026-12-01": { units: [2], test: [2], target: 60 },
+  "2026-12-02": { units: [1], test: [1, 2], target: 72 },
+  "2026-12-03": { units: [0], test: [0, 1, 2], target: 90 },
+  "2026-12-04": { units: [0, 1, 2], test: [2, 1, 0], target: 90 },
+};
 // HSK 1 route: back next term, with an HSK 1 basics station (Jane, 2026-11-20).
 
 const ZONES = [
